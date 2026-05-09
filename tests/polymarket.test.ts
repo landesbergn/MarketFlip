@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getMarketBySlug, getEventBySlug } from "@/lib/polymarket";
+import {
+  getMarketBySlug,
+  getEventBySlug,
+  getTrendingMarkets,
+  searchMarkets,
+} from "@/lib/polymarket";
 
 const sampleGammaMarket = {
   id: "0x123",
@@ -140,5 +145,50 @@ describe("getEventBySlug", () => {
     );
 
     expect(await getEventBySlug("x")).toBeNull();
+  });
+});
+
+describe("getTrendingMarkets", () => {
+  it("returns up to limit markets, filtering closed", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => [
+          { ...sampleGammaMarket, slug: "a" },
+          { ...sampleGammaMarket, slug: "b" },
+          { ...sampleGammaMarket, slug: "closed-one", closed: true },
+        ],
+      })) as unknown as typeof fetch
+    );
+
+    const markets = await getTrendingMarkets(12);
+    expect(markets.length).toBe(2);
+    expect(markets.map((m) => m.slug)).toEqual(["a", "b"]);
+  });
+});
+
+describe("searchMarkets", () => {
+  it("normalizes search results, filtering closed", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => [
+          { ...sampleGammaMarket, slug: "fed", question: "Fed rates?" },
+        ],
+      })) as unknown as typeof fetch
+    );
+
+    const results = await searchMarkets("fed");
+    expect(results.length).toBe(1);
+    expect(results[0].slug).toBe("fed");
+  });
+
+  it("returns [] for empty query", async () => {
+    expect(await searchMarkets("")).toEqual([]);
+    expect(await searchMarkets("   ")).toEqual([]);
   });
 });

@@ -84,3 +84,30 @@ export async function getEventBySlug(
   if (!Array.isArray(list) || list.length === 0) return null;
   return normalizeEvent(list[0]);
 }
+
+export async function getTrendingMarkets(
+  limit = 12,
+  init?: RequestInit
+): Promise<FlippableMarket[]> {
+  const url =
+    `/markets?active=true&closed=false&order=volume24hr&ascending=false&limit=${limit}`;
+  const list = await gammaFetch<GammaMarket[]>(url, init);
+  return list
+    .map(normalizeMarket)
+    .filter((m): m is FlippableMarket => m !== null)
+    .slice(0, limit);
+}
+
+export async function searchMarkets(
+  query: string,
+  init?: RequestInit
+): Promise<FlippableMarket[]> {
+  const q = query.trim();
+  if (q.length === 0) return [];
+  const url =
+    `/markets?active=true&closed=false&q=${encodeURIComponent(q)}&limit=20`;
+  const list = await gammaFetch<GammaMarket[]>(url, init);
+  return list
+    .map(normalizeMarket)
+    .filter((m): m is FlippableMarket => m !== null);
+}
