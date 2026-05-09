@@ -15,7 +15,8 @@ describe("<CoinFlip>", () => {
       />
     );
     expect(screen.getByText(/Will the Fed cut rates/)).toBeInTheDocument();
-    expect(screen.getByText(/56%/)).toBeInTheDocument();
+    expect(screen.getByText(/Yes 56%/)).toBeInTheDocument();
+    expect(screen.getByText(/No 44%/)).toBeInTheDocument();
   });
 
   it("clicking Flip reveals a result and calls onFlipComplete", async () => {
@@ -35,7 +36,7 @@ describe("<CoinFlip>", () => {
     await act(async () => {
       fireEvent.click(button);
     });
-    expect(screen.getByText(/YES/i)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/🎉 YES/);
     expect(onFlipComplete).toHaveBeenCalledWith("YES");
   });
 

@@ -57,15 +57,15 @@ export function CoinFlip(props: CoinFlipProps) {
       <h1 className="text-2xl font-bold">{question}</h1>
       <div className="flex gap-2 text-sm" aria-label={`Implied odds: ${outcomeYesLabel} ${yesPct}%, ${outcomeNoLabel} ${noPct}%`}>
         <span className="rounded-full bg-emerald-100 px-3 py-1 font-semibold text-emerald-800">
-          {yesPct}%
+          {outcomeYesLabel} {yesPct}%
         </span>
         <span className="rounded-full bg-rose-100 px-3 py-1 font-semibold text-rose-800">
-          {noPct}%
+          {outcomeNoLabel} {noPct}%
         </span>
       </div>
       <Coin phase={phase} result={result} />
       {phase === "revealed" && result ? (
-        <p className="text-xl font-semibold">
+        <p role="status" className="text-xl font-semibold">
           {result === "YES" ? "\u{1F389}" : "\u{1F6A8}"} {result} ({shownLabel})
         </p>
       ) : null}
