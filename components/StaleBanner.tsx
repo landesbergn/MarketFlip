@@ -1,8 +1,10 @@
-// components/StaleBanner.tsx
 export function StaleBanner() {
   return (
-    <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900">
-      Showing recent results — Polymarket is currently unreachable.
+    <div className="flex items-center gap-3 border border-[var(--oxblood)] bg-[rgba(139,31,31,0.06)] px-3 py-2">
+      <span className="eyebrow text-[var(--oxblood)]">Late edition</span>
+      <span className="figure text-xs text-[var(--ink-soft)]">
+        showing recent results — wire is unreachable.
+      </span>
     </div>
   );
 }

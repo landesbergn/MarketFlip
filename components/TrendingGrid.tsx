@@ -1,4 +1,3 @@
-// components/TrendingGrid.tsx
 import { getTrendingMarkets } from "@/lib/polymarket";
 import type { FlippableMarket } from "@/lib/types";
 import { MarketCard } from "./MarketCard";
@@ -18,14 +17,17 @@ export async function TrendingGrid() {
 
   if (markets.length === 0) {
     return (
-      <div className="rounded-md border border-zinc-200 p-6 text-center text-sm text-zinc-500">
-        No live markets right now. Try again in a minute.
+      <div className="border border-[var(--rule)] bg-[var(--paper-bright)] px-6 py-10 text-center">
+        <p className="eyebrow text-[var(--ink-faint)]">No live markets.</p>
+        <p className="figure mt-2 text-xs text-[var(--ink-soft)]">
+          Try again in a minute.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {stale ? <StaleBanner /> : null}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {markets.map((m) => (

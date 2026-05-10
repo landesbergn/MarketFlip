@@ -1,4 +1,3 @@
-// components/PasteUrlInput.tsx
 "use client";
 
 import { useState, type FormEvent } from "react";
@@ -30,14 +29,15 @@ export function PasteUrlInput() {
       })();
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        track({
-          name: "market_url_pasted",
-          props: { host, valid: false },
-        });
+        track({ name: "market_url_pasted", props: { host, valid: false } });
         if (data.error === "unrecognized_url") {
-          setError("We only support Polymarket URLs in v1. Try a polymarket.com link.");
+          setError(
+            "We only support Polymarket URLs in v1. Try a polymarket.com link."
+          );
         } else {
-          setError("Couldn't parse that URL — make sure it's a Polymarket market or event link.");
+          setError(
+            "Couldn't parse that URL — make sure it's a Polymarket market or event link."
+          );
         }
         return;
       }
@@ -51,24 +51,28 @@ export function PasteUrlInput() {
 
   return (
     <form onSubmit={onSubmit} className="w-full">
-      <div className="flex gap-2">
+      <div className="flex">
         <input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Paste a Polymarket URL…"
           aria-label="Polymarket URL"
-          className="grow rounded-md border-2 border-zinc-900 px-3 py-2 text-sm"
+          className="paper-input grow text-base px-4 py-3"
+          style={{ borderRadius: "2px 0 0 2px", borderRightWidth: 0 }}
         />
         <button
           type="submit"
           disabled={submitting || !value.trim()}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="btn-ink whitespace-nowrap"
+          style={{ borderRadius: "0 2px 2px 0" }}
         >
-          Go
+          {submitting ? "Checking" : "Run"}
         </button>
       </div>
-      {error ? <p className="mt-1 text-xs text-rose-700">{error}</p> : null}
+      {error ? (
+        <p className="figure mt-2 text-xs text-[var(--oxblood)]">{error}</p>
+      ) : null}
     </form>
   );
 }

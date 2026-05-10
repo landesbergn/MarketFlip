@@ -1,4 +1,3 @@
-// components/RefreshOddsButton.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -18,9 +17,9 @@ export function RefreshOddsButton() {
     <button
       onClick={onClick}
       disabled={refreshing}
-      className="text-xs text-zinc-500 hover:text-zinc-900 underline-offset-2 hover:underline disabled:opacity-60"
+      className="eyebrow text-[var(--ink-soft)] hover:text-[var(--oxblood)] disabled:opacity-50 transition-colors"
     >
-      {refreshing ? "Refreshing…" : "Refresh odds"}
+      {refreshing ? "↻ Refreshing…" : "↻ Refresh odds"}
     </button>
   );
 }

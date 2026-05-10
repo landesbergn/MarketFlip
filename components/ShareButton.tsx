@@ -1,4 +1,3 @@
-// components/ShareButton.tsx
 "use client";
 
 import { useState } from "react";
@@ -27,9 +26,10 @@ export function ShareButton({ text, slug, mode }: Props) {
   return (
     <button
       onClick={onClick}
-      className="rounded-md border border-zinc-300 px-3 py-1 text-sm font-medium hover:bg-zinc-100"
+      className="btn-ghost"
+      aria-live="polite"
     >
-      {copied ? "Copied!" : "Share result"}
+      {copied ? "✓ Copied" : "Share Result"}
     </button>
   );
 }

@@ -1,4 +1,3 @@
-// components/MarketCard.tsx
 import Link from "next/link";
 import type { FlippableMarket } from "@/lib/types";
 
@@ -9,21 +8,38 @@ export function MarketCard({ market }: { market: FlippableMarket }) {
   const noPct = 100 - yesPct;
 
   return (
-    <Link
-      href={`/m/${market.slug}`}
-      className="block rounded-lg border border-zinc-200 p-3 hover:bg-zinc-50 transition"
-    >
-      <p className="font-semibold text-sm leading-snug line-clamp-3">
+    <Link href={`/m/${market.slug}`} className="ticket block p-4 group">
+      <div className="flex items-center justify-between mb-2">
+        <span className="eyebrow text-[var(--ink-faint)]">
+          № {market.slug.slice(0, 6).toUpperCase()}
+        </span>
+        <span className="figure text-xs text-[var(--ink-faint)] group-hover:text-[var(--oxblood)] transition-colors">
+          ↗
+        </span>
+      </div>
+
+      <p
+        className="text-[1.05rem] leading-snug font-semibold text-[var(--ink)] line-clamp-3 mb-3"
+        style={{ fontVariationSettings: '"SOFT" 0, "opsz" 32' }}
+      >
         {market.question}
       </p>
-      <div className="mt-2 flex gap-2 text-xs">
-        <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-800">
-          {yes?.label ?? "Y"} {yesPct}%
-        </span>
-        <span className="rounded-full bg-rose-100 px-2 py-0.5 font-semibold text-rose-800">
-          {no?.label ?? "N"} {noPct}%
+
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1.5">
+          <span className="pill-yes">{`${yes?.label ?? "Y"} ${yesPct}%`}</span>
+          <span className="pill-no">{`${no?.label ?? "N"} ${noPct}%`}</span>
+        </div>
+        <span className="figure text-[10px] text-[var(--ink-faint)] tabular-nums">
+          ${formatVolume(market.volume24h)}
         </span>
       </div>
     </Link>
   );
+}
+
+function formatVolume(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return n.toLocaleString("en-US");
 }

@@ -1,4 +1,3 @@
-// components/CandidateList.tsx
 "use client";
 
 import { useState } from "react";
@@ -14,31 +13,52 @@ export function CandidateList({ event }: { event: ParentEvent }) {
 
   return (
     <div>
-      <h1 className="text-xl font-bold">{event.question}</h1>
-      <p className="text-sm text-zinc-500 mt-1">
-        {event.subMarkets.length} candidates · pick one to flip
-      </p>
-      <ul className="mt-4 space-y-2">
-        {event.subMarkets.map((s) => (
+      <header className="text-center mb-8">
+        <p className="eyebrow text-[var(--ink-faint)]">The Field</p>
+        <h1 className="headline text-3xl sm:text-4xl mt-2">{event.question}</h1>
+        <p className="figure mt-2 text-sm text-[var(--ink-soft)]">
+          {event.subMarkets.length} candidates ·{" "}
+          <span className="italic">pick one to flip</span>
+        </p>
+        <hr className="rule mx-auto mt-4 w-24" />
+      </header>
+
+      <ul className="space-y-1.5 border-y border-[var(--rule)] divide-y divide-[var(--rule-soft)]">
+        {event.subMarkets.map((s, idx) => (
           <li key={s.slug}>
             <button
               onClick={() => setSelected(s.slug)}
-              className={`w-full text-left rounded-md border px-3 py-2 text-sm flex justify-between items-center transition ${
+              className={`w-full text-left px-3 py-3 text-sm flex justify-between items-baseline gap-4 transition-colors ${
                 selected === s.slug
-                  ? "border-zinc-900 bg-zinc-50"
-                  : "border-zinc-200 hover:bg-zinc-50"
+                  ? "bg-[var(--paper-bright)]"
+                  : "hover:bg-[var(--paper-bright)]"
               }`}
             >
-              <span className="font-semibold">{s.question}</span>
-              <span className="font-mono text-zinc-600">
-                {Math.round(s.yesProbability * 100)}% → flip
+              <span className="flex items-baseline gap-3 min-w-0">
+                <span className="eyebrow text-[var(--ink-faint)] tabular-nums">
+                  {String(idx + 1).padStart(2, "0")}
+                </span>
+                <span className="font-semibold truncate">{s.question}</span>
+              </span>
+              <span className="figure text-[var(--ink)] whitespace-nowrap">
+                <span
+                  className={`${
+                    selected === s.slug
+                      ? "text-[var(--oxblood)]"
+                      : "text-[var(--ink-soft)]"
+                  }`}
+                >
+                  {Math.round(s.yesProbability * 100)}%
+                </span>{" "}
+                <span className="text-[var(--ink-faint)]">→</span>
               </span>
             </button>
           </li>
         ))}
       </ul>
+
       {sub ? (
-        <div className="mt-6">
+        <div className="mt-10 pt-10 border-t-2 border-[var(--ink)]">
           <CoinFlip
             slug={sub.slug}
             question={sub.question}

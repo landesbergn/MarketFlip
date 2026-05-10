@@ -1,4 +1,3 @@
-// components/History.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,26 +14,44 @@ export function History({ slug }: { slug: string }) {
   }, [open, slug]);
 
   return (
-    <div className="mt-8">
+    <div className="mt-12">
+      <hr className="rule mb-4" />
       <button
         onClick={() => setOpen((o) => !o)}
-        className="text-sm text-zinc-600 underline-offset-2 hover:underline"
+        className="eyebrow text-[var(--ink-soft)] hover:text-[var(--oxblood)] transition-colors"
       >
-        {open ? "Hide history" : "Show flip history for this market"}
+        {open
+          ? "− Hide ledger"
+          : "+ Show flip history for this market"}
       </button>
       {open ? (
-        <div className="mt-3 rounded-md border border-zinc-200 p-3 text-sm">
+        <div className="mt-4 ticket p-4 cursor-default" style={{ transform: "none" }}>
           {entries.length === 0 ? (
-            <p className="text-zinc-500">No flips yet for this market.</p>
+            <p className="figure text-sm text-[var(--ink-faint)] italic">
+              No flips yet for this market.
+            </p>
           ) : (
-            <ul className="space-y-1">
+            <ul className="divide-y divide-[var(--rule-soft)]">
               {entries.map((e, i) => (
-                <li key={i} className="flex justify-between">
-                  <span>
-                    {e.flippedTo === "YES" ? "🎉" : "🚨"} {e.flippedTo}{" "}
-                    <span className="text-zinc-500">— {e.outcomeLabel}</span>
+                <li
+                  key={i}
+                  className="flex justify-between items-baseline py-2 first:pt-0"
+                >
+                  <span className="text-sm">
+                    <span
+                      className={`figure font-semibold mr-2 ${
+                        e.flippedTo === "YES"
+                          ? "text-[var(--green-deep)]"
+                          : "text-[var(--oxblood)]"
+                      }`}
+                    >
+                      {e.flippedTo === "YES" ? "🎉 YES" : "🚨 NO"}
+                    </span>
+                    <span className="text-[var(--ink-soft)] italic">
+                      — {e.outcomeLabel}
+                    </span>
                   </span>
-                  <span className="font-mono text-xs text-zinc-500">
+                  <span className="figure text-[10px] text-[var(--ink-faint)] tabular-nums">
                     {new Date(e.timestamp).toLocaleString()}
                   </span>
                 </li>
@@ -47,7 +64,7 @@ export function History({ slug }: { slug: string }) {
                 clearHistory();
                 setEntries([]);
               }}
-              className="mt-2 text-xs text-rose-700 underline-offset-2 hover:underline"
+              className="mt-3 eyebrow text-[var(--oxblood)] hover:text-[var(--oxblood-deep)] transition-colors"
             >
               Clear all history
             </button>

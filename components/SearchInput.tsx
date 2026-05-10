@@ -1,4 +1,3 @@
-// components/SearchInput.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -21,7 +20,9 @@ export function SearchInput() {
       setLoading(true);
       track({ name: "market_searched", props: { query: q.trim() } });
       try {
-        const res = await fetch(`/api/markets/search?q=${encodeURIComponent(q.trim())}`);
+        const res = await fetch(
+          `/api/markets/search?q=${encodeURIComponent(q.trim())}`
+        );
         if (!res.ok) throw new Error("search failed");
         const data = (await res.json()) as { results: FlippableMarket[] };
         if (!cancelled) setResults(data.results);
@@ -39,27 +40,37 @@ export function SearchInput() {
 
   return (
     <div className="w-full">
-      <input
-        type="text"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="🔍 Search markets…"
-        aria-label="Search markets"
-        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-      />
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-faint)] pointer-events-none">
+          ✦
+        </span>
+        <input
+          type="text"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search the wire…"
+          aria-label="Search markets"
+          className="paper-input w-full text-base pl-9 pr-3 py-3"
+          style={{ borderRadius: "2px" }}
+        />
+      </div>
       {loading ? (
-        <p className="mt-2 text-xs text-zinc-500">Searching…</p>
+        <p className="eyebrow mt-3 text-[var(--ink-faint)]">
+          Inquiring&hellip;
+        </p>
       ) : results && results.length === 0 ? (
-        <p className="mt-2 text-xs text-zinc-500">No matches.</p>
+        <p className="eyebrow mt-3 text-[var(--ink-faint)]">No matches.</p>
       ) : results ? (
-        <ul className="mt-2 space-y-1">
+        <ul className="mt-3 divide-y divide-[var(--rule-soft)] border-t border-b border-[var(--rule-soft)]">
           {results.slice(0, 8).map((m) => (
             <li key={m.slug}>
               <Link
                 href={`/m/${m.slug}`}
-                className="block rounded px-2 py-1 text-sm hover:bg-zinc-100"
+                className="block px-1 py-2.5 hover:bg-[var(--paper-bright)] transition-colors group"
               >
-                {m.question}
+                <span className="text-[0.95rem] text-[var(--ink)] group-hover:text-[var(--oxblood)]">
+                  {m.question}
+                </span>
               </Link>
             </li>
           ))}

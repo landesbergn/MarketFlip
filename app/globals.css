@@ -1,26 +1,393 @@
 @import "tailwindcss";
 
+/* ======================================================================
+   MarketFlip — "Racing Form Almanac" design system
+   Late-19th-century financial broadside meets modern editorial.
+   ====================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Paper & ink */
+  --paper: #f3e7cf;
+  --paper-deep: #ecdfc1;
+  --paper-bright: #fbf5e3;
+  --ink: #1a1612;
+  --ink-soft: #5b4f43;
+  --ink-faint: #8a7d6e;
+  --rule: #c8b78c;
+  --rule-soft: #d8c9a3;
+
+  /* Accents */
+  --oxblood: #8b1f1f;
+  --oxblood-deep: #6a1414;
+  --green: #1e4a2b;
+  --green-deep: #143420;
+
+  /* Coin */
+  --gold-light: #efd283;
+  --gold: #c79a44;
+  --gold-deep: #7a5520;
+  --gold-shadow: #4a3614;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-paper-bright: var(--paper-bright);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+  --color-oxblood: var(--oxblood);
+  --color-oxblood-deep: var(--oxblood-deep);
+  --color-green: var(--green);
+  --color-green-deep: var(--green-deep);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-deep: var(--gold-deep);
+
+  --font-display: var(--font-fraunces), "Fraunces", Georgia, serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-display);
+  font-feature-settings: "ss01", "ss02", "onum", "dlig";
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 30, "WONK" 0;
+  /* Subtle paper grain via SVG noise */
+  background-image:
+    radial-gradient(at 12% 8%, rgba(200, 167, 90, 0.08) 0%, transparent 45%),
+    radial-gradient(at 88% 90%, rgba(139, 31, 31, 0.05) 0%, transparent 50%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.085  0 0 0 0 0.07  0 0 0 0.13 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: auto, auto, 220px 220px;
+}
+
+/* ----- Typography utilities ----- */
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 0, "WONK" 1, "opsz" 144;
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.figure {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum", "lnum";
+  letter-spacing: -0.01em;
+}
+
+/* ----- Decorative dividers ----- */
+
+.rule {
+  height: 1px;
+  background: var(--rule);
+  border: 0;
+}
+
+.rule-double {
+  height: 5px;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  border-left: 0;
+  border-right: 0;
+}
+
+.fleuron::before { content: "❦"; }
+
+.bullet-divider {
+  display: inline-block;
+  margin: 0 0.5em;
+  color: var(--ink-faint);
+}
+.bullet-divider::before { content: "·"; }
+
+/* ----- Inputs ----- */
+
+input.paper-input,
+input[type="text"].paper-input {
+  background: var(--paper-bright);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 0;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+input.paper-input::placeholder {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+input.paper-input:focus {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(26, 22, 18, 0.08);
+}
+
+/* ----- Buttons ----- */
+
+.btn-ink {
+  background: var(--ink);
+  color: var(--paper-bright);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+  padding: 0.625rem 1.125rem;
+  border-radius: 2px;
+  transition: background 120ms ease, transform 120ms ease;
+}
+.btn-ink:hover { background: var(--oxblood); }
+.btn-ink:active { transform: translateY(1px); }
+.btn-ink:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  transition: background 120ms ease;
+}
+.btn-ghost:hover { background: var(--ink); color: var(--paper-bright); }
+
+/* The hero "FLIP" button — extra weighty */
+.btn-flip {
+  background: var(--ink);
+  color: var(--paper-bright);
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 0, "WONK" 1;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 0.875rem 2.25rem;
+  border-radius: 2px;
+  border: 2px solid var(--ink);
+  transition: all 140ms ease;
+  box-shadow: 4px 4px 0 var(--ink);
+  position: relative;
+}
+.btn-flip:hover {
+  background: var(--oxblood);
+  border-color: var(--oxblood);
+  box-shadow: 4px 4px 0 var(--oxblood-deep);
+}
+.btn-flip:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+.btn-flip:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: 4px 4px 0 var(--ink-faint); }
+
+/* ----- Pills (odds badges) ----- */
+
+.pill-yes,
+.pill-no {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+.pill-yes {
+  background: rgba(30, 74, 43, 0.12);
+  color: var(--green-deep);
+  border: 1px solid rgba(30, 74, 43, 0.25);
+}
+.pill-no {
+  background: rgba(139, 31, 31, 0.10);
+  color: var(--oxblood-deep);
+  border: 1px solid rgba(139, 31, 31, 0.25);
+}
+
+/* ----- Cards / Tickets ----- */
+
+.ticket {
+  background: var(--paper-bright);
+  border: 1px solid var(--rule);
+  position: relative;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+.ticket:hover {
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  transform: translate(-1px, -1px);
+}
+
+/* ====================================================================
+   The Coin — true 3D, gold, embossed
+   ==================================================================== */
+
+.coin-stage {
+  perspective: 1200px;
+  width: 11.5rem;
+  height: 11.5rem;
+  display: grid;
+  place-items: center;
+}
+
+.coin {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 1.6s cubic-bezier(0.22, 0.85, 0.24, 1);
+  filter: drop-shadow(0 14px 14px rgba(74, 54, 20, 0.32));
+}
+
+.coin[data-phase="idle"] {
+  transform: rotateY(0deg);
+  animation: coin-bob 4s ease-in-out infinite;
+}
+.coin[data-phase="flipping"] {
+  animation: none;
+  transform: rotateY(2520deg);
+}
+.coin[data-phase="revealed"][data-result="YES"] {
+  animation: none;
+  transform: rotateY(2520deg);
+}
+.coin[data-phase="revealed"][data-result="NO"] {
+  animation: none;
+  transform: rotateY(2700deg);
+}
+
+@keyframes coin-bob {
+  0%, 100% { transform: rotateY(0deg) translateY(0); }
+  50% { transform: rotateY(8deg) translateY(-3px); }
+}
+
+.coin-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  background:
+    radial-gradient(circle at 28% 24%, var(--gold-light) 0%, var(--gold) 38%, var(--gold-deep) 100%);
+  box-shadow:
+    inset 0 0 0 4px rgba(74, 54, 20, 0.55),
+    inset 0 0 0 6px rgba(239, 210, 131, 0.7),
+    inset 0 0 0 8px rgba(74, 54, 20, 0.35),
+    inset 0 0 32px rgba(74, 54, 20, 0.45),
+    inset 0 -10px 26px rgba(74, 54, 20, 0.35),
+    inset 0 10px 22px rgba(255, 235, 175, 0.55);
+  display: grid;
+  place-items: center;
+  color: rgba(74, 54, 20, 0.9);
+  text-shadow: 0 1px 0 rgba(255, 235, 175, 0.6), 0 -1px 1px rgba(74, 54, 20, 0.35);
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 0, "WONK" 1, "opsz" 144;
+}
+
+.coin-face::before {
+  content: "";
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  border: 1px dashed rgba(74, 54, 20, 0.35);
+}
+
+.coin-face.face-tails {
+  transform: rotateY(180deg);
+}
+
+.coin-glyph {
+  font-size: 4.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.coin-mark {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(74, 54, 20, 0.75);
+}
+.coin-mark--top { top: 8%; }
+.coin-mark--bottom { bottom: 8%; }
+
+/* ====================================================================
+   Reveal / status text
+   ==================================================================== */
+
+.verdict {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 0, "WONK" 1, "opsz" 144;
+  font-weight: 700;
+  font-size: 2.25rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.verdict--yes { color: var(--green-deep); }
+.verdict--no  { color: var(--oxblood); }
+
+/* ====================================================================
+   Page-load reveal animation (staggered)
+   ==================================================================== */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.rise        { animation: rise 0.55s cubic-bezier(0.22, 0.85, 0.24, 1) both; }
+.rise-1      { animation-delay: 0.05s; }
+.rise-2      { animation-delay: 0.15s; }
+.rise-3      { animation-delay: 0.25s; }
+.rise-4      { animation-delay: 0.35s; }
+
+/* ====================================================================
+   Underline link
+   ==================================================================== */
+
+.ink-link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 120ms ease;
+}
+.ink-link:hover { text-decoration-color: var(--oxblood); }
+
+/* ====================================================================
+   Selection
+   ==================================================================== */
+
+::selection {
+  background: var(--ink);
+  color: var(--paper-bright);
 }
