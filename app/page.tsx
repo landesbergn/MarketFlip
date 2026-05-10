@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { TrendingGrid } from "@/components/TrendingGrid";
 import { PasteUrlInput } from "@/components/PasteUrlInput";
 import { SearchInput } from "@/components/SearchInput";
+import { PageViewTracker } from "@/components/PageViewTracker";
 
 export const metadata = {
   title: "MarketFlip — flip a coin against a Polymarket market",
@@ -13,6 +14,7 @@ export const metadata = {
 export default function HomePage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
+      <PageViewTracker event={{ name: "home_viewed" }} />
       <header className="flex items-center justify-between mb-8">
         <h1 className="text-xl font-bold tracking-tight">🪙 MarketFlip</h1>
         <p className="text-xs text-zinc-500">trending · search</p>

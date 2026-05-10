@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CoinFlip } from "@/components/CoinFlip";
 import { SimulationPanel } from "@/components/SimulationPanel";
 import { ShareButton } from "@/components/ShareButton";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import type { FlippableMarket, FlipOutcome, SimResult } from "@/lib/types";
 import { track } from "@/lib/posthog";
 import { addFlipToHistory } from "@/lib/storage";
@@ -21,6 +22,7 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
 
   return (
     <>
+      <PageViewTracker event={{ name: "market_viewed", props: { slug: market.slug, source: "direct" } }} />
       <CoinFlip
         slug={market.slug}
         question={market.question}
