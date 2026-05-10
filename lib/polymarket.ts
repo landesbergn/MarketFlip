@@ -98,17 +98,55 @@ export async function getTrendingMarkets(
     .slice(0, limit);
 }
 
+type GammaPublicSearchResponse = {
+  events?: (GammaEvent & { volume24hr?: number })[];
+};
+
+function normalizeEventAsSearchHit(
+  e: GammaEvent & { volume24hr?: number }
+): FlippableMarket | null {
+  if (e.closed === true || e.active === false) return null;
+  const live = (e.markets ?? []).filter((m) => m.closed !== true);
+  if (live.length === 0) return null;
+
+  // Use the highest-priced market's odds for the search-result pill display.
+  const top = [...live].sort((a, b) => {
+    const ap = parseJsonArray<string>(a.outcomePrices).map(Number)[0] ?? 0;
+    const bp = parseJsonArray<string>(b.outcomePrices).map(Number)[0] ?? 0;
+    return bp - ap;
+  })[0];
+
+  const labels = parseJsonArray<string>(top.outcomes);
+  const prices = parseJsonArray<string>(top.outcomePrices).map(Number);
+  if (labels.length < 2 || prices.length < 2) return null;
+
+  return {
+    id: e.id,
+    slug: e.slug,
+    question: e.title,
+    outcomes: labels.map((label, i) => ({
+      label,
+      probability: prices[i] ?? 0,
+    })),
+    endDate: e.endDate ?? "",
+    volume24h: e.volume24hr ?? 0,
+    url: `${POLYMARKET_BASE}/event/${e.slug}`,
+  };
+}
+
 export async function searchMarkets(
   query: string,
   init?: RequestInit
 ): Promise<FlippableMarket[]> {
   const q = query.trim();
   if (q.length === 0) return [];
-  const url =
-    `/markets?active=true&closed=false&q=${encodeURIComponent(q)}&limit=20`;
-  const list = await gammaFetch<GammaMarket[]>(url, init);
-  return list
-    .map(normalizeMarket)
+  const data = await gammaFetch<GammaPublicSearchResponse>(
+    `/public-search?q=${encodeURIComponent(q)}&limit_per_type=20`,
+    init
+  );
+  const events = Array.isArray(data?.events) ? data.events : [];
+  return events
+    .map(normalizeEventAsSearchHit)
     .filter((m): m is FlippableMarket => m !== null);
 }
 

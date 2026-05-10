@@ -8,31 +8,24 @@ export function MarketCard({ market }: { market: FlippableMarket }) {
   const noPct = 100 - yesPct;
 
   return (
-    <Link href={`/m/${market.slug}`} className="ticket block p-4 group">
-      <div className="flex items-center justify-between mb-2">
-        <span className="eyebrow text-[var(--ink-faint)]">
-          № {market.slug.slice(0, 6).toUpperCase()}
-        </span>
-        <span className="figure text-xs text-[var(--ink-faint)] group-hover:text-[var(--oxblood)] transition-colors">
-          ↗
-        </span>
-      </div>
-
-      <p
-        className="text-[1.05rem] leading-snug font-semibold text-[var(--ink)] line-clamp-3 mb-3"
-        style={{ fontVariationSettings: '"SOFT" 0, "opsz" 32' }}
-      >
+    <Link
+      href={`/m/${market.slug}`}
+      className="ticket flex flex-col p-4 group min-h-[8.5rem]"
+    >
+      <p className="text-[1rem] leading-snug font-semibold text-[var(--ink)] flex-1 [overflow-wrap:anywhere] [hyphens:auto]">
         {market.question}
       </p>
 
-      <div className="flex items-center justify-between">
-        <div className="flex gap-1.5">
+      <div className="mt-4 flex items-center justify-between gap-2">
+        <div className="flex gap-1.5 flex-wrap">
           <span className="pill-yes">{`${yes?.label ?? "Y"} ${yesPct}%`}</span>
           <span className="pill-no">{`${no?.label ?? "N"} ${noPct}%`}</span>
         </div>
-        <span className="figure text-[10px] text-[var(--ink-faint)] tabular-nums">
-          ${formatVolume(market.volume24h)}
-        </span>
+        {market.volume24h > 0 ? (
+          <span className="figure text-[10px] text-[var(--ink-faint)] tabular-nums whitespace-nowrap">
+            ${formatVolume(market.volume24h)}
+          </span>
+        ) : null}
       </div>
     </Link>
   );

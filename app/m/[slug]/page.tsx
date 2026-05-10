@@ -5,6 +5,7 @@ import { CandidateList } from "@/components/CandidateList";
 import { History } from "@/components/History";
 import { RefreshOddsButton } from "@/components/RefreshOddsButton";
 import { MarketFlipClient } from "./MarketFlipClient";
+import type { FlippableMarket } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,30 @@ export default async function MarketPage({ params }: PageProps) {
   );
 
   if (event) {
+    // Single-market event: flatten directly into the binary flip UI.
+    if (event.subMarkets.length === 1) {
+      const sub = event.subMarkets[0];
+      const synthetic: FlippableMarket = {
+        id: event.slug,
+        slug: event.slug,
+        question: event.question,
+        outcomes: [
+          { label: "Yes", probability: sub.yesProbability },
+          { label: "No", probability: 1 - sub.yesProbability },
+        ],
+        endDate: event.endDate,
+        volume24h: 0,
+        url: event.url,
+      };
+      return (
+        <main className="mx-auto max-w-3xl px-6 py-10 sm:py-14">
+          <Header />
+          <MarketFlipClient market={synthetic} />
+          <History slug={slug} />
+        </main>
+      );
+    }
+
     return (
       <main className="mx-auto max-w-3xl px-6 py-10 sm:py-14">
         <Header />

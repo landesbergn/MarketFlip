@@ -171,21 +171,62 @@ describe("getTrendingMarkets", () => {
 });
 
 describe("searchMarkets", () => {
-  it("normalizes search results, filtering closed", async () => {
+  it("normalizes search results from /public-search, surfacing event slug", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => ({
         ok: true,
         status: 200,
-        json: async () => [
-          { ...sampleGammaMarket, slug: "fed", question: "Fed rates?" },
-        ],
+        json: async () => ({
+          events: [
+            {
+              id: "ev-fed",
+              slug: "fed-decision-in-june",
+              title: "Fed Decision in June?",
+              endDate: "2026-06-15T00:00:00Z",
+              active: true,
+              closed: false,
+              volume24hr: 88888,
+              markets: [sampleGammaMarket],
+            },
+          ],
+        }),
       })) as unknown as typeof fetch
     );
 
     const results = await searchMarkets("fed");
     expect(results.length).toBe(1);
-    expect(results[0].slug).toBe("fed");
+    expect(results[0].slug).toBe("fed-decision-in-june");
+    expect(results[0].question).toBe("Fed Decision in June?");
+    expect(results[0].url).toBe(
+      "https://polymarket.com/event/fed-decision-in-june"
+    );
+    expect(results[0].volume24h).toBe(88888);
+  });
+
+  it("filters out closed events", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          events: [
+            {
+              id: "ev-closed",
+              slug: "fed-closed",
+              title: "Closed event",
+              active: true,
+              closed: true,
+              markets: [sampleGammaMarket],
+            },
+          ],
+        }),
+      })) as unknown as typeof fetch
+    );
+
+    const results = await searchMarkets("fed");
+    expect(results).toEqual([]);
   });
 
   it("returns [] for empty query", async () => {

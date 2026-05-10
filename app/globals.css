@@ -248,7 +248,7 @@ input.paper-input:focus {
    ==================================================================== */
 
 .coin-stage {
-  perspective: 1200px;
+  perspective: 1400px;
   width: 11.5rem;
   height: 11.5rem;
   display: grid;
@@ -260,30 +260,47 @@ input.paper-input:focus {
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 1.6s cubic-bezier(0.22, 0.85, 0.24, 1);
   filter: drop-shadow(0 14px 14px rgba(74, 54, 20, 0.32));
+  will-change: transform;
 }
 
 .coin[data-phase="idle"] {
-  transform: rotateY(0deg);
-  animation: coin-bob 4s ease-in-out infinite;
+  animation: coin-bob 4.2s ease-in-out infinite;
 }
-.coin[data-phase="flipping"] {
-  animation: none;
-  transform: rotateY(2520deg);
+
+.coin[data-phase="flipping"][data-result="YES"] {
+  animation: coin-flip-yes 1.9s cubic-bezier(0.18, 0.85, 0.22, 1) forwards;
 }
+.coin[data-phase="flipping"][data-result="NO"] {
+  animation: coin-flip-no 1.9s cubic-bezier(0.18, 0.85, 0.22, 1) forwards;
+}
+
 .coin[data-phase="revealed"][data-result="YES"] {
-  animation: none;
   transform: rotateY(2520deg);
 }
 .coin[data-phase="revealed"][data-result="NO"] {
-  animation: none;
   transform: rotateY(2700deg);
 }
 
 @keyframes coin-bob {
-  0%, 100% { transform: rotateY(0deg) translateY(0); }
-  50% { transform: rotateY(8deg) translateY(-3px); }
+  0%, 100% { transform: rotateY(-10deg) translateY(0); }
+  50%      { transform: rotateY(10deg)  translateY(-4px); }
+}
+
+@keyframes coin-flip-yes {
+  0%   { transform: rotateY(0deg)    translateY(0); }
+  20%  { transform: rotateY(540deg)  translateY(-46px); }
+  55%  { transform: rotateY(1620deg) translateY(-72px); }
+  85%  { transform: rotateY(2300deg) translateY(-22px); }
+  100% { transform: rotateY(2520deg) translateY(0); }
+}
+
+@keyframes coin-flip-no {
+  0%   { transform: rotateY(0deg)    translateY(0); }
+  20%  { transform: rotateY(540deg)  translateY(-46px); }
+  55%  { transform: rotateY(1620deg) translateY(-72px); }
+  85%  { transform: rotateY(2480deg) translateY(-22px); }
+  100% { transform: rotateY(2700deg) translateY(0); }
 }
 
 .coin-face {
