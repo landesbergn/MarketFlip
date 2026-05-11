@@ -119,16 +119,16 @@ export function SimulationPanel({
         {done ? (
           <>
             Across {TOTAL_TRIALS.toLocaleString()} trials of {TRIAL_SIZE} flips
-            each, that came up YES an average of{" "}
+            each, the coin landed YES{" "}
             <span style={{ color: "var(--accent)" }}>
               {meanObs?.toFixed(1)}%
             </span>{" "}
-            of the time. Market priced it at{" "}
+            of the time on average. Market priced this at{" "}
             <span style={{ color: "var(--accent)" }}>{yesPct}%</span>.
           </>
         ) : (
           <>
-            Each trial is {TRIAL_SIZE} flips of a coin weighted to{" "}
+            Each trial is {TRIAL_SIZE} flips of a coin weighted to the market&rsquo;s{" "}
             <span style={{ color: "var(--accent)" }}>{yesPct}%</span>.
             We&rsquo;re plotting how often it lands YES across{" "}
             {TOTAL_TRIALS.toLocaleString()} trials.
