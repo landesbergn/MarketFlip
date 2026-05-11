@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import type { SimResult } from "@/lib/types";
 import { Histogram } from "./Histogram";
-import { questionToStatement } from "@/lib/fmt";
+import { isLiteralYesNo, questionToStatement } from "@/lib/fmt";
 
 type Props = {
   slug: string;
   question: string;
   yesProbability: number;
+  yesLabel?: string;
+  noLabel?: string;
   onSimulationComplete?: (r: SimResult) => void;
 };
 
@@ -19,6 +21,8 @@ const BURST = Math.max(8, Math.ceil(TOTAL_TRIALS / 90));
 export function SimulationPanel({
   question,
   yesProbability,
+  yesLabel,
+  noLabel,
   onSimulationComplete,
 }: Props) {
   const [active, setActive] = useState(false);
@@ -100,7 +104,11 @@ export function SimulationPanel({
       ? observations.reduce((s, v) => s + v, 0) / observations.length
       : null;
   const done = observations.length >= TOTAL_TRIALS;
-  const statement = questionToStatement(question).replace(/\.$/, "");
+  const literal = isLiteralYesNo(yesLabel, noLabel);
+  const yesToken = literal ? "YES" : yesLabel ?? "YES";
+  const headline = literal
+    ? questionToStatement(question).replace(/\.$/, "")
+    : question;
 
   return (
     <section className="mt-10 pt-10 border-t border-[var(--rule)]">
@@ -111,7 +119,7 @@ export function SimulationPanel({
 
       <p className="mt-3 text-[22px] leading-snug max-w-[720px]">
         <span className="italic text-[var(--ink-soft)]">
-          &ldquo;{statement}&rdquo;
+          &ldquo;{headline}&rdquo;
         </span>
       </p>
 
@@ -119,7 +127,7 @@ export function SimulationPanel({
         {done ? (
           <>
             Across {TOTAL_TRIALS.toLocaleString()} trials of {TRIAL_SIZE} flips
-            each, the coin landed YES{" "}
+            each, the coin landed {yesToken}{" "}
             <span style={{ color: "var(--accent)" }}>
               {meanObs?.toFixed(1)}%
             </span>{" "}
@@ -130,7 +138,7 @@ export function SimulationPanel({
           <>
             Each trial is {TRIAL_SIZE} flips of a coin weighted to the market&rsquo;s{" "}
             <span style={{ color: "var(--accent)" }}>{yesPct}%</span>.
-            We&rsquo;re plotting how often it lands YES across{" "}
+            We&rsquo;re plotting how often it lands {yesToken} across{" "}
             {TOTAL_TRIALS.toLocaleString()} trials.
           </>
         )}
@@ -142,7 +150,7 @@ export function SimulationPanel({
           className="figure flex justify-between mt-1 text-[10px] tracking-[0.1em] text-[var(--ink-mono)]"
           aria-hidden="true"
         >
-          <span>0% YES</span>
+          <span>0% {yesToken}</span>
           <span>50%</span>
           <span>100%</span>
         </div>

@@ -43,3 +43,27 @@ export function questionToStatement(question: string): string {
   if (!/[.!?]$/.test(s)) s += ".";
   return s;
 }
+
+/**
+ * Whether the market's outcome labels are the literal "Yes"/"No" pair.
+ * When false, the labels carry meaning (e.g. team names, candidate names)
+ * and should be displayed in place of "YES"/"NO" throughout the UI.
+ */
+export function isLiteralYesNo(yesLabel?: string, noLabel?: string): boolean {
+  const y = (yesLabel ?? "Yes").trim().toLowerCase();
+  const n = (noLabel ?? "No").trim().toLowerCase();
+  return y === "yes" && n === "no";
+}
+
+/**
+ * Display token for an outcome — "YES"/"NO" for literal markets,
+ * otherwise the outcome's actual label (e.g. "Pistons", "Cavaliers").
+ */
+export function displayLabel(
+  outcome: "YES" | "NO",
+  yesLabel?: string,
+  noLabel?: string
+): string {
+  if (isLiteralYesNo(yesLabel, noLabel)) return outcome;
+  return outcome === "YES" ? yesLabel ?? "Yes" : noLabel ?? "No";
+}

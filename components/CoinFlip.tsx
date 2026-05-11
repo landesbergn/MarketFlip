@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { flip } from "@/lib/flip";
-import { questionToStatement } from "@/lib/fmt";
+import { displayLabel, isLiteralYesNo, questionToStatement } from "@/lib/fmt";
 import type { FlipOutcome } from "@/lib/types";
 
 export type CoinFlipProps = {
@@ -37,12 +37,10 @@ export function CoinFlip(props: CoinFlipProps) {
 
   const yesPct = Math.round(yesProbability * 100);
   const noPct = 100 - yesPct;
-  const statement = questionToStatement(question);
 
   const handleFlip = () => {
     if (phase === "flipping") return;
     const outcome = flip(yesProbability);
-    // Previous face (treat initial as YES at rotation=0).
     const previousFace: FlipOutcome = result ?? "YES";
     const sameFace = previousFace === outcome;
     const nextRotation =
@@ -121,8 +119,10 @@ export function CoinFlip(props: CoinFlipProps) {
         {phase === "landed" && result && (
           <Result
             result={result}
-            statement={statement}
+            question={question}
             yesPct={yesPct}
+            outcomeYesLabel={outcomeYesLabel}
+            outcomeNoLabel={outcomeNoLabel}
             onAgain={handleFlip}
           />
         )}
@@ -133,17 +133,27 @@ export function CoinFlip(props: CoinFlipProps) {
 
 function Result({
   result,
-  statement,
+  question,
   yesPct,
+  outcomeYesLabel,
+  outcomeNoLabel,
   onAgain,
 }: {
   result: FlipOutcome;
-  statement: string;
+  question: string;
   yesPct: number;
+  outcomeYesLabel: string;
+  outcomeNoLabel: string;
   onAgain: () => void;
 }) {
   const noPct = 100 - yesPct;
   const landedOdds = result === "YES" ? yesPct : noPct;
+  const literal = isLiteralYesNo(outcomeYesLabel, outcomeNoLabel);
+  const landedLabel = displayLabel(result, outcomeYesLabel, outcomeNoLabel);
+  // For matchup-style markets (team/candidate labels), the label IS the
+  // outcome; no need for a strikethrough proposition. For literal Yes/No
+  // markets, restate the question and strike it through on NO.
+  const statement = literal ? questionToStatement(question) : "";
 
   return (
     <div>
@@ -158,22 +168,27 @@ function Result({
           fontStyle: "italic",
         }}
       >
-        {result}.
+        {landedLabel.toUpperCase()}.
       </p>
-      <p className="mt-3 text-[22px] leading-snug max-w-md">
-        {result === "YES" ? (
-          <span className="italic">{statement}</span>
-        ) : (
-          <span
-            className="italic text-[var(--ink-soft)]"
-            style={{ textDecoration: "line-through", textDecorationThickness: "1.5px" }}
-          >
-            {statement}
-          </span>
-        )}
-      </p>
-      <p className="figure mt-2 text-[11px] tracking-[0.15em] uppercase text-[var(--ink-mono)]">
-        Market priced {result} at {landedOdds}%.
+      {literal && statement && (
+        <p className="mt-3 text-[22px] leading-snug max-w-md">
+          {result === "YES" ? (
+            <span className="italic">{statement}</span>
+          ) : (
+            <span
+              className="italic text-[var(--ink-soft)]"
+              style={{
+                textDecoration: "line-through",
+                textDecorationThickness: "1.5px",
+              }}
+            >
+              {statement}
+            </span>
+          )}
+        </p>
+      )}
+      <p className="figure mt-3 text-[11px] tracking-[0.15em] uppercase text-[var(--ink-mono)]">
+        Market priced {landedLabel.toUpperCase()} at {landedOdds}%.
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-4">
         <button onClick={onAgain} className="btn-outline">

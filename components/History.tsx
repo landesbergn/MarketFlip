@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { readHistory, clearHistory } from "@/lib/storage";
+import { isLiteralYesNo } from "@/lib/fmt";
 import type { HistoryEntry } from "@/lib/types";
 
 type Props = {
@@ -16,9 +17,19 @@ type Props = {
    * (implied vs. observed).
    */
   yesProbability: number;
+  /** Outcome label for the YES side (e.g. "Pistons", "Yes"). */
+  yesLabel?: string;
+  /** Outcome label for the NO side (e.g. "Cavaliers", "No"). */
+  noLabel?: string;
 };
 
-export function History({ slug, refreshKey = 0, yesProbability }: Props) {
+export function History({
+  slug,
+  refreshKey = 0,
+  yesProbability,
+  yesLabel,
+  noLabel,
+}: Props) {
   const [open, setOpen] = useState(true);
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
 
@@ -33,6 +44,9 @@ export function History({ slug, refreshKey = 0, yesProbability }: Props) {
   const noCount = entries.length - yesCount;
   const observed = entries.length > 0 ? (yesCount / entries.length) * 100 : 0;
   const implied = Math.round(yesProbability * 100);
+  const literal = isLiteralYesNo(yesLabel, noLabel);
+  const yesToken = literal ? "YES" : yesLabel ?? "YES";
+  const noToken = literal ? "NO" : noLabel ?? "NO";
 
   return (
     <section className="mt-10 pt-8 border-t border-[var(--rule)]">
@@ -71,7 +85,7 @@ export function History({ slug, refreshKey = 0, yesProbability }: Props) {
           <p className="mt-3 text-[22px] leading-snug max-w-[720px]">
             Across your{" "}
             <span style={{ color: "var(--accent)" }}>{entries.length}</span>{" "}
-            {entries.length === 1 ? "flip" : "flips"}, YES came up{" "}
+            {entries.length === 1 ? "flip" : "flips"}, {yesToken} came up{" "}
             <span style={{ color: "var(--accent)" }}>{yesCount}</span>{" "}
             {yesCount === 1 ? "time" : "times"}.{" "}
             <span className="text-[var(--ink-soft)] italic">
@@ -82,8 +96,8 @@ export function History({ slug, refreshKey = 0, yesProbability }: Props) {
           <div className="mt-5">
             <FlipDots entries={entries} />
             <div className="flex gap-6 mt-4">
-              <LegendDot solid label={`${yesCount} YES`} />
-              <LegendDot solid={false} label={`${noCount} NO`} />
+              <LegendDot solid label={`${yesCount} ${yesToken}`} />
+              <LegendDot solid={false} label={`${noCount} ${noToken}`} />
             </div>
           </div>
         </>

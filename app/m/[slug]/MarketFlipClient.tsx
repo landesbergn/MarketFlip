@@ -12,6 +12,7 @@ import type { FlippableMarket, FlipOutcome, SimResult } from "@/lib/types";
 import { track } from "@/lib/posthog";
 import { addFlipToHistory } from "@/lib/storage";
 import { formatSingleFlipShare, formatSimulationShare } from "@/lib/share";
+import { isLiteralYesNo } from "@/lib/fmt";
 
 export function MarketFlipClient({ market }: { market: FlippableMarket }) {
   const yes = market.outcomes[0];
@@ -25,6 +26,8 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
   const noPct = 100 - yesPct;
   const url =
     typeof window !== "undefined" ? window.location.href : market.url;
+  const literal = isLiteralYesNo(yes?.label, no?.label);
+  const yesToken = literal ? "YES" : yes?.label ?? "YES";
 
   return (
     <>
@@ -44,7 +47,7 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
         >
           The market sees{" "}
           <span className="not-italic" style={{ color: "var(--accent)" }}>
-            YES
+            {yesToken}
           </span>{" "}
           in{" "}
           <span className="not-italic" style={{ color: "var(--accent)" }}>
@@ -104,6 +107,8 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
             slug={market.slug}
             question={market.question}
             yesProbability={yesProbability}
+            yesLabel={yes?.label}
+            noLabel={no?.label}
             onSimulationComplete={(r) => {
               setLastSim(r);
               track({
@@ -123,6 +128,8 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
               question: market.question,
               yesProbability,
               flipped: lastFlip,
+              yesLabel: yes?.label,
+              noLabel: no?.label,
               url,
             })}
           />
@@ -134,6 +141,8 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
         slug={market.slug}
         refreshKey={historyKey}
         yesProbability={yesProbability}
+        yesLabel={yes?.label}
+        noLabel={no?.label}
       />
 
       {lastSim && (
@@ -147,6 +156,8 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
               n: lastSim.n,
               yesCount: lastSim.yesCount,
               noCount: lastSim.noCount,
+              yesLabel: yes?.label,
+              noLabel: no?.label,
               url,
             })}
           />
