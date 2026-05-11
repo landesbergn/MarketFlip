@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { flip } from "@/lib/flip";
+import { questionToStatement } from "@/lib/fmt";
 import type { FlipOutcome } from "@/lib/types";
 
 export type CoinFlipProps = {
@@ -13,13 +14,11 @@ export type CoinFlipProps = {
   /** Total flip animation duration. 0 means instant (used in tests). */
   flipDurationMs?: number;
   onFlipComplete?: (outcome: FlipOutcome) => void;
-  /** Render the inline result panel right under the coin. Default true. */
-  renderResult?: boolean;
 };
 
 type Phase = "idle" | "flipping" | "landed";
 
-const FLIP_TURNS = 8; // even number of half-turns — front returns to camera
+const FLIP_TURNS = 8; // even number of half-turns — same face returns to camera
 
 export function CoinFlip(props: CoinFlipProps) {
   const {
@@ -29,19 +28,30 @@ export function CoinFlip(props: CoinFlipProps) {
     outcomeNoLabel,
     flipDurationMs = 1500,
     onFlipComplete,
-    renderResult = true,
   } = props;
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<FlipOutcome | null>(null);
+  const [rotation, setRotation] = useState(0); // accumulating rotateX
+  const [flipCount, setFlipCount] = useState(0);
 
   const yesPct = Math.round(yesProbability * 100);
   const noPct = 100 - yesPct;
+  const statement = questionToStatement(question);
 
   const handleFlip = () => {
     if (phase === "flipping") return;
     const outcome = flip(yesProbability);
+    // Previous face (treat initial as YES at rotation=0).
+    const previousFace: FlipOutcome = result ?? "YES";
+    const sameFace = previousFace === outcome;
+    const nextRotation =
+      rotation + FLIP_TURNS * 180 + (sameFace ? 0 : 180);
+
     setResult(outcome);
+    setRotation(nextRotation);
+    setFlipCount((c) => c + 1);
+
     if (flipDurationMs <= 0) {
       setPhase("landed");
       onFlipComplete?.(outcome);
@@ -54,14 +64,6 @@ export function CoinFlip(props: CoinFlipProps) {
     }, flipDurationMs);
   };
 
-  const handleAgain = () => {
-    setPhase("idle");
-    setResult(null);
-  };
-
-  const finalDeg =
-    phase === "idle" ? 0 : FLIP_TURNS * 180 + (result === "YES" ? 0 : 180);
-
   return (
     <section
       className="py-10 grid gap-14 items-center"
@@ -70,11 +72,15 @@ export function CoinFlip(props: CoinFlipProps) {
       <div className="grid place-items-end justify-self-center">
         <div className="coin-stage">
           <div className="coin-shadow" data-state={phase} />
-          <div className="coin-arc" data-state={phase}>
+          <div
+            key={flipCount}
+            className="coin-arc"
+            data-state={phase}
+          >
             <div
               className="coin-spin"
               data-state={phase}
-              style={{ transform: `rotateX(${finalDeg}deg)` }}
+              style={{ transform: `rotateX(${rotation}deg)` }}
             >
               <div className="coin-face coin-face--yes">
                 {phase === "landed" && result === "YES"
@@ -91,7 +97,9 @@ export function CoinFlip(props: CoinFlipProps) {
         </div>
       </div>
 
-      <div aria-label={`Implied odds: ${outcomeYesLabel} ${yesPct}%, ${outcomeNoLabel} ${noPct}%`}>
+      <div
+        aria-label={`Implied odds: ${outcomeYesLabel} ${yesPct}%, ${outcomeNoLabel} ${noPct}%`}
+      >
         {phase === "idle" && (
           <>
             <h2 className="text-3xl font-semibold tracking-tight">
@@ -110,14 +118,12 @@ export function CoinFlip(props: CoinFlipProps) {
           <p className="text-2xl italic text-[var(--ink-faint)]">drawing&hellip;</p>
         )}
 
-        {phase === "landed" && result && renderResult && (
+        {phase === "landed" && result && (
           <Result
             result={result}
-            question={question}
+            statement={statement}
             yesPct={yesPct}
-            outcomeYesLabel={outcomeYesLabel}
-            outcomeNoLabel={outcomeNoLabel}
-            onAgain={handleAgain}
+            onAgain={handleFlip}
           />
         )}
       </div>
@@ -127,22 +133,17 @@ export function CoinFlip(props: CoinFlipProps) {
 
 function Result({
   result,
-  question,
+  statement,
   yesPct,
-  outcomeYesLabel,
-  outcomeNoLabel,
   onAgain,
 }: {
   result: FlipOutcome;
-  question: string;
+  statement: string;
   yesPct: number;
-  outcomeYesLabel: string;
-  outcomeNoLabel: string;
   onAgain: () => void;
 }) {
   const noPct = 100 - yesPct;
   const landedOdds = result === "YES" ? yesPct : noPct;
-  const label = result === "YES" ? outcomeYesLabel : outcomeNoLabel;
 
   return (
     <div>
@@ -154,15 +155,19 @@ function Result({
           fontSize: 84,
           color: result === "YES" ? "var(--accent)" : "var(--ink)",
           lineHeight: 0.95,
+          fontStyle: "italic",
         }}
       >
         {result}.
       </p>
-      <p className="mt-3 text-xl leading-snug max-w-md">
-        {question}{" "}
-        <span className="text-[var(--ink-soft)]">
-          ({label})
-        </span>
+      <p className="mt-3 text-[22px] leading-snug max-w-md">
+        {result === "YES" ? (
+          <span>{statement}</span>
+        ) : (
+          <span>
+            Not&hairsp;—&hairsp;<span className="text-[var(--ink-soft)]">{statement}</span>
+          </span>
+        )}
       </p>
       <p className="figure mt-2 text-[11px] tracking-[0.15em] uppercase text-[var(--ink-mono)]">
         Market priced {result} at {landedOdds}%.
@@ -171,7 +176,6 @@ function Result({
         <button onClick={onAgain} className="btn-outline">
           Flip again
         </button>
-        {/* Run-sim & share buttons are injected by the parent client component */}
         <span data-slot="result-actions" />
       </div>
     </div>

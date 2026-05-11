@@ -5,6 +5,7 @@ import { CoinFlip } from "./CoinFlip";
 import { MarketDescription } from "./MarketDescription";
 import { ShareButton } from "./ShareButton";
 import { SimulationPanel } from "./SimulationPanel";
+import { History } from "./History";
 import type { ParentEvent, FlipOutcome, SimResult } from "@/lib/types";
 import { track } from "@/lib/posthog";
 import { addFlipToHistory } from "@/lib/storage";
@@ -18,6 +19,7 @@ export function CandidateList({ event }: { event: ParentEvent }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [lastFlip, setLastFlip] = useState<FlipOutcome | null>(null);
   const [lastSim, setLastSim] = useState<SimResult | null>(null);
+  const [historyKey, setHistoryKey] = useState(0);
 
   const sub = event.subMarkets.find((s) => s.slug === selected) ?? null;
   const subUrl =
@@ -111,6 +113,7 @@ export function CandidateList({ event }: { event: ParentEvent }) {
                 impliedProbability: sub.yesProbability,
                 timestamp: Date.now(),
               });
+              setHistoryKey((k) => k + 1);
             }}
           />
 
@@ -144,6 +147,12 @@ export function CandidateList({ event }: { event: ParentEvent }) {
               />
             </div>
           )}
+
+          <History
+            slug={sub.slug}
+            refreshKey={historyKey}
+            yesProbability={sub.yesProbability}
+          />
 
           {lastSim && (
             <ShareButton

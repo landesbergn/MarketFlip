@@ -29,16 +29,28 @@ export function MarketCard({ market }: { market: FlippableMarket }) {
         </div>
         <div className="text-right min-w-[100px]">
           <div
-            className="display tracking-tight"
             style={{
+              fontFamily: "var(--font-sans)",
+              fontWeight: 600,
               fontSize: 40,
+              lineHeight: 1,
               color: "var(--accent)",
               fontStyle: "italic",
-              lineHeight: 1,
+              letterSpacing: "-0.02em",
             }}
           >
-            {yesPct}
-            <span className="text-[22px] text-[var(--ink)] not-italic">%</span>
+            <span>{yesPct}</span>
+            <span
+              style={{
+                fontSize: 22,
+                color: "var(--ink)",
+                fontStyle: "normal",
+                marginLeft: 4,
+                letterSpacing: 0,
+              }}
+            >
+              %
+            </span>
           </div>
           <p className="eyebrow mt-1 text-[9px]">YES</p>
         </div>

@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { getMarketBySlug, getEventBySlug } from "@/lib/polymarket";
 import { CandidateList } from "@/components/CandidateList";
-import { History } from "@/components/History";
 import { Nameplate } from "@/components/Nameplate";
 import { MarketFlipClient } from "./MarketFlipClient";
 import type { FlippableMarket } from "@/lib/types";
@@ -26,7 +25,6 @@ export default async function MarketPage({ params }: PageProps) {
         <MarketHeader market={market} />
         <hr className="border-0 border-t border-[var(--rule)] m-0" />
         <MarketFlipClient market={market} />
-        <History slug={slug} />
       </main>
     );
   }
@@ -59,7 +57,6 @@ export default async function MarketPage({ params }: PageProps) {
           <MarketHeader market={synthetic} />
           <hr className="border-0 border-t border-[var(--rule)] m-0" />
           <MarketFlipClient market={synthetic} />
-          <History slug={slug} />
         </main>
       );
     }
@@ -83,7 +80,6 @@ export default async function MarketPage({ params }: PageProps) {
         </section>
         <hr className="border-0 border-t border-[var(--rule)] m-0" />
         <CandidateList event={event} />
-        <History slug={slug} />
       </main>
     );
   }

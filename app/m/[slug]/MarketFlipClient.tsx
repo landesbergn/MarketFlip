@@ -7,6 +7,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { DotGrid } from "@/components/DotGrid";
 import { MarketDescription } from "@/components/MarketDescription";
+import { History } from "@/components/History";
 import type { FlippableMarket, FlipOutcome, SimResult } from "@/lib/types";
 import { track } from "@/lib/posthog";
 import { addFlipToHistory } from "@/lib/storage";
@@ -17,6 +18,7 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
   const no = market.outcomes[1];
   const [lastFlip, setLastFlip] = useState<FlipOutcome | null>(null);
   const [lastSim, setLastSim] = useState<SimResult | null>(null);
+  const [historyKey, setHistoryKey] = useState(0);
 
   const yesProbability = yes?.probability ?? 0;
   const yesPct = Math.round(yesProbability * 100);
@@ -92,11 +94,12 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
             impliedProbability: yesProbability,
             timestamp: Date.now(),
           });
+          setHistoryKey((k) => k + 1);
         }}
       />
 
       {lastFlip && (
-        <div className="flex flex-wrap items-center gap-5 -mt-2 pb-10">
+        <div className="flex flex-wrap items-center gap-5 -mt-2">
           <SimulationPanel
             slug={market.slug}
             question={market.question}
@@ -125,6 +128,13 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
           />
         </div>
       )}
+
+      {/* Personal flip distribution */}
+      <History
+        slug={market.slug}
+        refreshKey={historyKey}
+        yesProbability={yesProbability}
+      />
 
       {lastSim && (
         <div className="pt-4">

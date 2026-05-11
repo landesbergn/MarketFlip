@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { SimResult } from "@/lib/types";
 import { Histogram } from "./Histogram";
+import { questionToStatement } from "@/lib/fmt";
 
 type Props = {
   slug: string;
@@ -15,7 +16,11 @@ const TOTAL_TRIALS = 1000;
 const TRIAL_SIZE = 100; // each trial is 100 flips
 const BURST = Math.max(8, Math.ceil(TOTAL_TRIALS / 90));
 
-export function SimulationPanel({ yesProbability, onSimulationComplete }: Props) {
+export function SimulationPanel({
+  question,
+  yesProbability,
+  onSimulationComplete,
+}: Props) {
   const [active, setActive] = useState(false);
   const [running, setRunning] = useState(false);
   const [observations, setObservations] = useState<number[]>([]);
@@ -75,7 +80,6 @@ export function SimulationPanel({ yesProbability, onSimulationComplete }: Props)
     };
   }, [running, yesProbability, onSimulationComplete]);
 
-  // Public trigger so the parent can wire this from the result block.
   if (!active) {
     return (
       <button
@@ -96,30 +100,38 @@ export function SimulationPanel({ yesProbability, onSimulationComplete }: Props)
       ? observations.reduce((s, v) => s + v, 0) / observations.length
       : null;
   const done = observations.length >= TOTAL_TRIALS;
+  const statement = questionToStatement(question).replace(/\.$/, "");
 
   return (
     <section className="mt-10 pt-10 border-t border-[var(--rule)]">
       <p className="eyebrow">
-        Distribution &middot; {observations.length.toLocaleString()} of {TOTAL_TRIALS.toLocaleString()} trials
+        Distribution &middot; {observations.length.toLocaleString()} of{" "}
+        {TOTAL_TRIALS.toLocaleString()} trials
       </p>
-      <p className="mt-3 text-xl leading-snug max-w-2xl">
+
+      <p className="mt-3 text-[22px] leading-snug max-w-[720px]">
+        <span className="italic text-[var(--ink-soft)]">
+          &ldquo;{statement}&rdquo;
+        </span>
+      </p>
+
+      <p className="mt-2 text-[17px] leading-relaxed text-[var(--ink)] max-w-[720px]">
         {done ? (
           <>
-            Across {TOTAL_TRIALS.toLocaleString()} trials of {TRIAL_SIZE} flips each, YES came up an
-            average of{" "}
-            <span className="text-[var(--accent)] font-semibold">
+            Across {TOTAL_TRIALS.toLocaleString()} trials of {TRIAL_SIZE} flips
+            each, that came up YES an average of{" "}
+            <span style={{ color: "var(--accent)" }}>
               {meanObs?.toFixed(1)}%
             </span>{" "}
-            — Implied was{" "}
-            <span className="text-[var(--accent)] font-semibold">
-              {yesPct}%
-            </span>{" "}
-            (Observed: {meanObs?.toFixed(1)}%).
+            of the time. Market priced it at{" "}
+            <span style={{ color: "var(--accent)" }}>{yesPct}%</span>.
           </>
         ) : (
           <>
-            Each trial is {TRIAL_SIZE} flips. We&rsquo;re plotting how many came up YES.
-            Implied: {yesPct}%. Observed: building&hellip;
+            Each trial is {TRIAL_SIZE} flips of a coin weighted to{" "}
+            <span style={{ color: "var(--accent)" }}>{yesPct}%</span>.
+            We&rsquo;re plotting how often it lands YES across{" "}
+            {TOTAL_TRIALS.toLocaleString()} trials.
           </>
         )}
       </p>

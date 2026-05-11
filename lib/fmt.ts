@@ -24,3 +24,22 @@ export function extractCandidateName(question: string): string {
   const m = question.match(/^Will (.+?) (win|be|become|secure|take|defeat)\b/i);
   return m ? m[1].trim() : question;
 }
+
+/**
+ * Turn a Polymarket-style question into a declarative statement.
+ * "Will the Fed cut rates in June?" -> "The Fed cut rates in June."
+ *
+ * Pairs with a big YES./NO. header to communicate the outcome contextually
+ * without needing hand-written yes/no copy per market.
+ */
+export function questionToStatement(question: string): string {
+  if (!question) return "";
+  let s = question.trim();
+  // Strip leading "Will " (case-insensitive) and trailing "?"s.
+  s = s.replace(/^Will\s+/i, "").replace(/\?+\s*$/, "").trim();
+  if (!s) return question.trim();
+  // Capitalize first letter, ensure trailing period.
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+  if (!/[.!?]$/.test(s)) s += ".";
+  return s;
+}
