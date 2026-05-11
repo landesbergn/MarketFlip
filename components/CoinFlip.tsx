@@ -73,9 +73,9 @@ export function CoinFlip(props: CoinFlipProps) {
         <div className="coin-stage">
           <div className="coin-shadow" data-state={phase} />
           <div
-            key={flipCount}
             className="coin-arc"
             data-state={phase}
+            data-parity={flipCount % 2}
           >
             <div
               className="coin-spin"
@@ -162,10 +162,13 @@ function Result({
       </p>
       <p className="mt-3 text-[22px] leading-snug max-w-md">
         {result === "YES" ? (
-          <span>{statement}</span>
+          <span className="italic">{statement}</span>
         ) : (
-          <span>
-            Not&hairsp;—&hairsp;<span className="text-[var(--ink-soft)]">{statement}</span>
+          <span
+            className="italic text-[var(--ink-soft)]"
+            style={{ textDecoration: "line-through", textDecorationThickness: "1.5px" }}
+          >
+            {statement}
           </span>
         )}
       </p>
