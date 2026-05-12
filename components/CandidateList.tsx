@@ -1,31 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CoinFlip } from "./CoinFlip";
 import { MarketDescription } from "./MarketDescription";
 import { ShareButton } from "./ShareButton";
-import { SimulationPanel } from "./SimulationPanel";
 import { History } from "./History";
-import type { ParentEvent, FlipOutcome, SimResult } from "@/lib/types";
+import type { ParentEvent, FlipOutcome, HistoryEntry } from "@/lib/types";
 import { track } from "@/lib/posthog";
-import { addFlipToHistory } from "@/lib/storage";
+import { addFlipToHistory, addFlipsToHistory } from "@/lib/storage";
 import { extractCandidateName } from "@/lib/fmt";
-import {
-  formatSingleFlipShare,
-  formatSimulationShare,
-} from "@/lib/share";
+import { flip as flipOnce } from "@/lib/flip";
+import { formatSingleFlipShare } from "@/lib/share";
+
+const RUN_COUNT = 100;
 
 export function CandidateList({ event }: { event: ParentEvent }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [lastFlip, setLastFlip] = useState<FlipOutcome | null>(null);
-  const [lastSim, setLastSim] = useState<SimResult | null>(null);
   const [historyKey, setHistoryKey] = useState(0);
+  const [running, setRunning] = useState(false);
+  const runningRef = useRef(false);
 
   const sub = event.subMarkets.find((s) => s.slug === selected) ?? null;
   const subUrl =
     typeof window !== "undefined" && sub
       ? window.location.href
       : sub?.slug ?? "";
+
+  const handleRunHundred = () => {
+    if (!sub || runningRef.current) return;
+    runningRef.current = true;
+    setRunning(true);
+
+    let done = 0;
+    let yesInRun = 0;
+    const base = Date.now();
+    const perFrame = 4;
+
+    const tick = () => {
+      const batch: HistoryEntry[] = [];
+      for (let i = 0; i < perFrame && done < RUN_COUNT; i++) {
+        const outcome = flipOnce(sub.yesProbability);
+        if (outcome === "YES") yesInRun++;
+        batch.push({
+          slug: sub.slug,
+          question: sub.question,
+          outcomeLabel: sub.question,
+          flippedTo: outcome,
+          impliedProbability: sub.yesProbability,
+          timestamp: base + done,
+        });
+        done++;
+      }
+      addFlipsToHistory(batch);
+      setHistoryKey((k) => k + 1);
+
+      if (done < RUN_COUNT) {
+        requestAnimationFrame(tick);
+      } else {
+        runningRef.current = false;
+        setRunning(false);
+        track({
+          name: "simulation_run",
+          props: {
+            slug: sub.slug,
+            n: RUN_COUNT,
+            observed_yes_count: yesInRun,
+          },
+        });
+      }
+    };
+    requestAnimationFrame(tick);
+  };
 
   return (
     <div>
@@ -50,7 +96,6 @@ export function CandidateList({ event }: { event: ParentEvent }) {
                   onClick={() => {
                     setSelected(s.slug);
                     setLastFlip(null);
-                    setLastSim(null);
                   }}
                   className="row-hover w-full text-left grid items-center gap-6 px-3 py-5"
                   style={{
@@ -96,7 +141,6 @@ export function CandidateList({ event }: { event: ParentEvent }) {
             outcomeNoLabel="Someone else"
             onFlipComplete={(o: FlipOutcome) => {
               setLastFlip(o);
-              setLastSim(null);
               track({
                 name: "flip_executed",
                 props: {
@@ -118,7 +162,14 @@ export function CandidateList({ event }: { event: ParentEvent }) {
           />
 
           {lastFlip && (
-            <div className="flex flex-wrap gap-4 -mt-4 mb-4">
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-5">
+              <button
+                className="btn-link"
+                onClick={handleRunHundred}
+                disabled={running}
+              >
+                {running ? "Running…" : "Run 100 →"}
+              </button>
               <ShareButton
                 slug={sub.slug}
                 mode="single"
@@ -129,22 +180,6 @@ export function CandidateList({ event }: { event: ParentEvent }) {
                   url: subUrl,
                 })}
               />
-              <SimulationPanel
-                slug={sub.slug}
-                question={sub.question}
-                yesProbability={sub.yesProbability}
-                onSimulationComplete={(r) => {
-                  setLastSim(r);
-                  track({
-                    name: "simulation_run",
-                    props: {
-                      slug: sub.slug,
-                      n: r.n,
-                      observed_yes_count: r.yesCount,
-                    },
-                  });
-                }}
-              />
             </div>
           )}
 
@@ -153,21 +188,6 @@ export function CandidateList({ event }: { event: ParentEvent }) {
             refreshKey={historyKey}
             yesProbability={sub.yesProbability}
           />
-
-          {lastSim && (
-            <ShareButton
-              slug={sub.slug}
-              mode="sim"
-              text={formatSimulationShare({
-                question: sub.question,
-                yesProbability: sub.yesProbability,
-                n: lastSim.n,
-                yesCount: lastSim.yesCount,
-                noCount: lastSim.noCount,
-                url: subUrl,
-              })}
-            />
-          )}
         </section>
       )}
 

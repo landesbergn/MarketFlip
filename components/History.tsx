@@ -12,10 +12,7 @@ type Props = {
    * re-reads localStorage and re-renders the distribution.
    */
   refreshKey?: number;
-  /**
-   * Implied YES probability — used to anchor the comparison line
-   * (implied vs. observed).
-   */
+  /** Implied YES probability — kept for parity with the implied dot grid. */
   yesProbability: number;
   /** Outcome label for the YES side (e.g. "Pistons", "Yes"). */
   yesLabel?: string;
@@ -37,7 +34,6 @@ export function History({
     setEntries(readHistory().filter((e) => e.slug === slug));
   }, [slug, refreshKey]);
 
-  // Hide entirely if there are zero flips for this market.
   if (entries.length === 0) return null;
 
   const yesCount = entries.filter((e) => e.flippedTo === "YES").length;
@@ -45,12 +41,10 @@ export function History({
   const literal = isLiteralYesNo(yesLabel, noLabel);
   const yesToken = literal ? "YES" : yesLabel ?? "YES";
   const noToken = literal ? "NO" : noLabel ?? "NO";
-  // yesProbability prop kept for parity with the implied dot grid; not
-  // used here now that the implied/yours percentages were dropped.
   void yesProbability;
 
   return (
-    <section className="mt-10 pt-8 border-t border-[var(--rule)]">
+    <section className="mt-2 pt-6 border-t border-[var(--rule)]">
       <div className="flex items-baseline justify-between">
         <button
           onClick={() => setOpen((o) => !o)}
@@ -64,8 +58,8 @@ export function History({
           aria-expanded={open}
         >
           {open
-            ? "− Your flip history for this market"
-            : `+ Your flip history for this market · ${entries.length} ${entries.length === 1 ? "flip" : "flips"}`}
+            ? "− Your flips for this market"
+            : `+ Your flips · ${entries.length}`}
         </button>
         {open && entries.length > 0 && (
           <button
@@ -83,17 +77,28 @@ export function History({
 
       {open && (
         <>
-          <p className="mt-3 text-[22px] leading-snug max-w-[720px]">
+          <p
+            className="mt-3 text-[24px] italic leading-snug m-0"
+            style={{ color: "var(--ink)" }}
+          >
             You saw{" "}
-            <span style={{ color: "var(--accent)" }}>{yesToken}</span> in{" "}
-            <span style={{ color: "var(--accent)" }}>{yesCount}</span> of{" "}
-            <span style={{ color: "var(--accent)" }}>{entries.length}</span>{" "}
+            <span className="not-italic" style={{ color: "var(--accent)" }}>
+              {yesToken}
+            </span>{" "}
+            in{" "}
+            <span className="not-italic" style={{ color: "var(--accent)" }}>
+              {yesCount}
+            </span>{" "}
+            of{" "}
+            <span className="not-italic" style={{ color: "var(--accent)" }}>
+              {entries.length}
+            </span>{" "}
             {entries.length === 1 ? "flip" : "flips"}.
           </p>
 
           <div className="mt-5">
             <FlipDots entries={entries} />
-            <div className="flex gap-6 mt-4">
+            <div className="flex gap-6 mt-5">
               <LegendDot solid label={`${yesCount} ${yesToken}`} />
               <LegendDot solid={false} label={`${noCount} ${noToken}`} />
             </div>
@@ -105,10 +110,12 @@ export function History({
 }
 
 function FlipDots({ entries }: { entries: HistoryEntry[] }) {
-  // Render newest first, left-to-right.
+  // Chronological: oldest → top-left, newest → bottom-right.
+  // entries arrive newest-first from readHistory; reverse so the grid
+  // fills left-to-right in the order the flips actually happened.
   const ordered = [...entries].reverse();
-  const size = 14;
-  const gap = 4;
+  const size = 18;
+  const gap = 3;
   return (
     <div
       style={{
@@ -141,18 +148,26 @@ function FlipDots({ entries }: { entries: HistoryEntry[] }) {
 
 function LegendDot({ solid, label }: { solid: boolean; label: string }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2.5">
       <div
         style={{
-          width: 10,
-          height: 10,
+          width: 12,
+          height: 12,
           borderRadius: "50%",
           background: solid ? "var(--accent)" : "transparent",
-          border: solid ? "none" : "1.25px solid var(--ink)",
-          opacity: solid ? 1 : 0.55,
+          border: solid ? "none" : "1.5px solid var(--ink)",
         }}
       />
-      <span className="eyebrow" style={{ fontSize: 10 }}>
+      <span
+        className="figure"
+        style={{
+          fontSize: 12,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          fontWeight: 500,
+          color: "var(--ink)",
+        }}
+      >
         {label}
       </span>
     </div>

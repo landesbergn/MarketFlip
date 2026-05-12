@@ -1,25 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CoinFlip } from "@/components/CoinFlip";
-import { SimulationPanel } from "@/components/SimulationPanel";
 import { ShareButton } from "@/components/ShareButton";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { DotGrid } from "@/components/DotGrid";
 import { MarketDescription } from "@/components/MarketDescription";
 import { History } from "@/components/History";
-import type { FlippableMarket, FlipOutcome, SimResult } from "@/lib/types";
+import type {
+  FlippableMarket,
+  FlipOutcome,
+  HistoryEntry,
+} from "@/lib/types";
 import { track } from "@/lib/posthog";
-import { addFlipToHistory } from "@/lib/storage";
-import { formatSingleFlipShare, formatSimulationShare } from "@/lib/share";
+import {
+  addFlipToHistory,
+  addFlipsToHistory,
+} from "@/lib/storage";
+import { flip as flipOnce } from "@/lib/flip";
+import { formatSingleFlipShare } from "@/lib/share";
 import { isLiteralYesNo, reframeQuestion } from "@/lib/fmt";
+
+const RUN_COUNT = 100;
 
 export function MarketFlipClient({ market }: { market: FlippableMarket }) {
   const yes = market.outcomes[0];
   const no = market.outcomes[1];
   const [lastFlip, setLastFlip] = useState<FlipOutcome | null>(null);
-  const [lastSim, setLastSim] = useState<SimResult | null>(null);
   const [historyKey, setHistoryKey] = useState(0);
+  const [running, setRunning] = useState(false);
+  const runningRef = useRef(false);
 
   const yesProbability = yes?.probability ?? 0;
   const yesPct = Math.round(yesProbability * 100);
@@ -34,6 +44,77 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
     no?.label
   );
 
+  const yesLabelText = yes?.label ?? "Yes";
+  const noLabelText = no?.label ?? "No";
+
+  const handleFlipComplete = (o: FlipOutcome) => {
+    setLastFlip(o);
+    track({
+      name: "flip_executed",
+      props: {
+        slug: market.slug,
+        outcome: o,
+        implied_probability: yesProbability,
+      },
+    });
+    addFlipToHistory({
+      slug: market.slug,
+      question: market.question,
+      outcomeLabel: o === "YES" ? yesLabelText : noLabelText,
+      flippedTo: o,
+      impliedProbability: yesProbability,
+      timestamp: Date.now(),
+    });
+    setHistoryKey((k) => k + 1);
+  };
+
+  const handleRunHundred = () => {
+    if (runningRef.current) return;
+    runningRef.current = true;
+    setRunning(true);
+
+    let done = 0;
+    let yesInRun = 0;
+    const base = Date.now();
+    const perFrame = 4; // 100 / 4 = 25 frames ≈ 420ms at 60fps
+
+    const tick = () => {
+      const batch: HistoryEntry[] = [];
+      for (let i = 0; i < perFrame && done < RUN_COUNT; i++) {
+        const outcome = flipOnce(yesProbability);
+        if (outcome === "YES") yesInRun++;
+        batch.push({
+          slug: market.slug,
+          question: market.question,
+          outcomeLabel: outcome === "YES" ? yesLabelText : noLabelText,
+          flippedTo: outcome,
+          impliedProbability: yesProbability,
+          // Tiny per-flip offset preserves ordering within a single ms.
+          timestamp: base + done,
+        });
+        done++;
+      }
+      addFlipsToHistory(batch);
+      setHistoryKey((k) => k + 1);
+
+      if (done < RUN_COUNT) {
+        requestAnimationFrame(tick);
+      } else {
+        runningRef.current = false;
+        setRunning(false);
+        track({
+          name: "simulation_run",
+          props: {
+            slug: market.slug,
+            n: RUN_COUNT,
+            observed_yes_count: yesInRun,
+          },
+        });
+      }
+    };
+    requestAnimationFrame(tick);
+  };
+
   return (
     <>
       <PageViewTracker
@@ -43,7 +124,6 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
         }}
       />
 
-      {/* Flip + Reading side-by-side on lg+, stacked below */}
       <section className="pt-8 pb-6 grid gap-12 lg:grid-cols-2 items-start">
         {/* Left: Flip */}
         <div>
@@ -51,52 +131,20 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
             slug={market.slug}
             question={displayQuestion}
             yesProbability={yesProbability}
-            outcomeYesLabel={yes?.label ?? "Yes"}
-            outcomeNoLabel={no?.label ?? "No"}
-            onFlipComplete={(o) => {
-              setLastFlip(o);
-              setLastSim(null);
-              track({
-                name: "flip_executed",
-                props: {
-                  slug: market.slug,
-                  outcome: o,
-                  implied_probability: yesProbability,
-                },
-              });
-              addFlipToHistory({
-                slug: market.slug,
-                question: market.question,
-                outcomeLabel:
-                  o === "YES" ? yes?.label ?? "Yes" : no?.label ?? "No",
-                flippedTo: o,
-                impliedProbability: yesProbability,
-                timestamp: Date.now(),
-              });
-              setHistoryKey((k) => k + 1);
-            }}
+            outcomeYesLabel={yesLabelText}
+            outcomeNoLabel={noLabelText}
+            onFlipComplete={handleFlipComplete}
           />
 
           {lastFlip && (
             <div className="mt-4 flex flex-wrap items-center justify-center gap-5">
-              <SimulationPanel
-                slug={market.slug}
-                question={displayQuestion}
-                yesProbability={yesProbability}
-                yesLabel={yes?.label}
-                noLabel={no?.label}
-                onSimulationComplete={(r) => {
-                  setLastSim(r);
-                  track({
-                    name: "simulation_run",
-                    props: {
-                      slug: market.slug,
-                      n: r.n,
-                      observed_yes_count: r.yesCount,
-                    },
-                  });
-                }}
-              />
+              <button
+                className="btn-link"
+                onClick={handleRunHundred}
+                disabled={running}
+              >
+                {running ? "Running…" : "Run 100 →"}
+              </button>
               <ShareButton
                 slug={market.slug}
                 mode="single"
@@ -137,8 +185,8 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
           <div>
             <DotGrid yesProb={yesProbability} cols={20} size={18} gap={3} />
             <div className="flex gap-6 mt-5">
-              <LegendDot solid label={`${yesPct} ${yes?.label ?? "YES"}`} />
-              <LegendDot solid={false} label={`${noPct} ${no?.label ?? "NO"}`} />
+              <LegendDot solid label={`${yesPct} ${yesLabelText}`} />
+              <LegendDot solid={false} label={`${noPct} ${noLabelText}`} />
             </div>
           </div>
 
@@ -152,25 +200,6 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
           />
         </div>
       </section>
-
-      {lastSim && (
-        <div className="pt-4">
-          <ShareButton
-            slug={market.slug}
-            mode="sim"
-            text={formatSimulationShare({
-              question: displayQuestion,
-              yesProbability,
-              n: lastSim.n,
-              yesCount: lastSim.yesCount,
-              noCount: lastSim.noCount,
-              yesLabel: yes?.label,
-              noLabel: no?.label,
-              url,
-            })}
-          />
-        </div>
-      )}
 
       <MarketDescription text={market.description} />
     </>
