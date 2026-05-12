@@ -258,20 +258,20 @@ body {
 }
 
 @keyframes coin-toss-a {
-  0%   { transform: translateY(0)     scaleY(1); }
-  15%  { transform: translateY(-104px) scaleY(1.02); }
-  50%  { transform: translateY(-161px) scaleY(1); }
-  85%  { transform: translateY(-19px)  scaleY(1); }
-  92%  { transform: translateY(0)     scaleY(0.82); }
-  100% { transform: translateY(0)     scaleY(1); }
+  0%   { transform: translateY(0)                                       scaleY(1); }
+  15%  { transform: translateY(calc(var(--toss-peak, 104px) * -1))      scaleY(1.02); }
+  50%  { transform: translateY(calc(var(--toss-mid, 161px) * -1))       scaleY(1); }
+  85%  { transform: translateY(calc(var(--toss-overshoot, 19px) * -1))  scaleY(1); }
+  92%  { transform: translateY(0)                                       scaleY(0.82); }
+  100% { transform: translateY(0)                                       scaleY(1); }
 }
 @keyframes coin-toss-b {
-  0%   { transform: translateY(0)     scaleY(1); }
-  15%  { transform: translateY(-104px) scaleY(1.02); }
-  50%  { transform: translateY(-161px) scaleY(1); }
-  85%  { transform: translateY(-19px)  scaleY(1); }
-  92%  { transform: translateY(0)     scaleY(0.82); }
-  100% { transform: translateY(0)     scaleY(1); }
+  0%   { transform: translateY(0)                                       scaleY(1); }
+  15%  { transform: translateY(calc(var(--toss-peak, 104px) * -1))      scaleY(1.02); }
+  50%  { transform: translateY(calc(var(--toss-mid, 161px) * -1))       scaleY(1); }
+  85%  { transform: translateY(calc(var(--toss-overshoot, 19px) * -1))  scaleY(1); }
+  92%  { transform: translateY(0)                                       scaleY(0.82); }
+  100% { transform: translateY(0)                                       scaleY(1); }
 }
 
 /* ====================================================================
