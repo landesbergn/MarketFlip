@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { CoinFlip } from "./CoinFlip";
-import { MarketDescription } from "./MarketDescription";
 import { ShareButton } from "./ShareButton";
 import { History } from "./History";
 import type { ParentEvent, FlipOutcome, HistoryEntry } from "@/lib/types";
@@ -190,8 +189,6 @@ export function CandidateList({ event }: { event: ParentEvent }) {
           />
         </section>
       )}
-
-      <MarketDescription text={event.description} />
     </div>
   );
 }

@@ -5,7 +5,6 @@ import { CoinFlip } from "@/components/CoinFlip";
 import { ShareButton } from "@/components/ShareButton";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { DotGrid } from "@/components/DotGrid";
-import { MarketDescription } from "@/components/MarketDescription";
 import { History } from "@/components/History";
 import type {
   FlippableMarket,
@@ -200,8 +199,6 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
           />
         </div>
       </section>
-
-      <MarketDescription text={market.description} />
     </>
   );
 }

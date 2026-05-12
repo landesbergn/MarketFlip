@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getMarketBySlug, getEventBySlug } from "@/lib/polymarket";
 import { CandidateList } from "@/components/CandidateList";
 import { Nameplate } from "@/components/Nameplate";
+import { MarketDescription } from "@/components/MarketDescription";
 import { MarketFlipClient } from "./MarketFlipClient";
 import type { FlippableMarket } from "@/lib/types";
 import { fmtVol, fmtResolveDate, reframeQuestion } from "@/lib/fmt";
@@ -77,6 +78,7 @@ export default async function MarketPage({ params }: PageProps) {
           >
             {event.question}
           </h1>
+          <MarketDescription text={event.description} />
         </section>
         <hr className="border-0 border-t border-[var(--rule)] m-0" />
         <CandidateList event={event} />
@@ -109,6 +111,7 @@ function MarketHeader({ market }: { market: FlippableMarket }) {
       >
         {displayQuestion}
       </h1>
+      <MarketDescription text={market.description} />
     </section>
   );
 }

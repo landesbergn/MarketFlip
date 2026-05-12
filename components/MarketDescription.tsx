@@ -17,7 +17,7 @@ export function MarketDescription({ text }: Props) {
     .filter(Boolean);
 
   return (
-    <section className="mt-12 pt-8 border-t border-[var(--rule)]">
+    <div className="mt-3">
       <button
         onClick={() => setOpen((o) => !o)}
         className="eyebrow"
@@ -32,7 +32,7 @@ export function MarketDescription({ text }: Props) {
         {open ? "− Resolution criteria" : "+ Resolution criteria"}
       </button>
       {open && (
-        <div className="mt-4 text-[15px] leading-relaxed text-[var(--ink-soft)] space-y-3 max-w-prose">
+        <div className="mt-3 text-[15px] leading-relaxed text-[var(--ink-soft)] space-y-3 max-w-prose">
           {paragraphs.map((p, i) => (
             <p key={i} className="whitespace-pre-line">
               {p}
@@ -40,6 +40,6 @@ export function MarketDescription({ text }: Props) {
           ))}
         </div>
       )}
-    </section>
+    </div>
   );
 }
