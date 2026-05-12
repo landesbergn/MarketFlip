@@ -18,6 +18,12 @@ type Props = {
   yesLabel?: string;
   /** Outcome label for the NO side (e.g. "Cavaliers", "No"). */
   noLabel?: string;
+  /**
+   * When true, render the section without the collapsible "Your flips
+   * for this market" header. Used on mobile where the summary + chart
+   * are always visible and the Clear link sits between them.
+   */
+  alwaysOpen?: boolean;
 };
 
 export function History({
@@ -26,6 +32,7 @@ export function History({
   yesProbability,
   yesLabel,
   noLabel,
+  alwaysOpen = false,
 }: Props) {
   const [open, setOpen] = useState(true);
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
@@ -42,6 +49,66 @@ export function History({
   const yesToken = literal ? "YES" : yesLabel ?? "YES";
   const noToken = literal ? "NO" : noLabel ?? "NO";
   void yesProbability;
+
+  const handleClear = () => {
+    clearHistory();
+    setEntries([]);
+  };
+
+  const summary = (
+    <p
+      className="mt-3 text-[20px] sm:text-[24px] italic leading-snug m-0"
+      style={{ color: "var(--ink)" }}
+    >
+      You saw{" "}
+      <span className="not-italic" style={{ color: "var(--accent)" }}>
+        {yesToken}
+      </span>{" "}
+      in{" "}
+      <span className="not-italic" style={{ color: "var(--accent)" }}>
+        {yesCount}
+      </span>{" "}
+      of{" "}
+      <span className="not-italic" style={{ color: "var(--accent)" }}>
+        {entries.length}
+      </span>{" "}
+      {entries.length === 1 ? "flip" : "flips"}
+      <span className="not-italic text-[var(--ink-soft)]">
+        {" "}({Math.round((yesCount / entries.length) * 100)}%)
+      </span>
+      .
+    </p>
+  );
+
+  const dots = (
+    <div className="mt-5">
+      <FlipDots entries={entries} />
+      <div className="flex gap-6 mt-5">
+        <LegendDot solid label={`${yesCount} ${yesToken}`} />
+        <LegendDot solid={false} label={`${noCount} ${noToken}`} />
+      </div>
+    </div>
+  );
+
+  const clearBtn = (
+    <button
+      onClick={handleClear}
+      className="figure text-[10px] tracking-[0.15em] uppercase text-[var(--ink-faint)] hover:text-[var(--ink)] transition-colors"
+      style={{ background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
+    >
+      Clear
+    </button>
+  );
+
+  if (alwaysOpen) {
+    return (
+      <section className="mt-2 pt-6 border-t border-[var(--rule)]">
+        {summary}
+        <div className="mt-3">{clearBtn}</div>
+        {dots}
+      </section>
+    );
+  }
 
   return (
     <section className="mt-2 pt-6 border-t border-[var(--rule)]">
@@ -61,52 +128,13 @@ export function History({
             ? "− Your flips for this market"
             : `+ Your flips · ${entries.length}`}
         </button>
-        {open && entries.length > 0 && (
-          <button
-            onClick={() => {
-              clearHistory();
-              setEntries([]);
-            }}
-            className="figure text-[10px] tracking-[0.15em] uppercase text-[var(--ink-faint)] hover:text-[var(--ink)] transition-colors"
-            style={{ background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
-          >
-            Clear
-          </button>
-        )}
+        {open && clearBtn}
       </div>
 
       {open && (
         <>
-          <p
-            className="mt-3 text-[20px] sm:text-[24px] italic leading-snug m-0"
-            style={{ color: "var(--ink)" }}
-          >
-            You saw{" "}
-            <span className="not-italic" style={{ color: "var(--accent)" }}>
-              {yesToken}
-            </span>{" "}
-            in{" "}
-            <span className="not-italic" style={{ color: "var(--accent)" }}>
-              {yesCount}
-            </span>{" "}
-            of{" "}
-            <span className="not-italic" style={{ color: "var(--accent)" }}>
-              {entries.length}
-            </span>{" "}
-            {entries.length === 1 ? "flip" : "flips"}
-            <span className="not-italic text-[var(--ink-soft)]">
-              {" "}({Math.round((yesCount / entries.length) * 100)}%)
-            </span>
-            .
-          </p>
-
-          <div className="mt-5">
-            <FlipDots entries={entries} />
-            <div className="flex gap-6 mt-5">
-              <LegendDot solid label={`${yesCount} ${yesToken}`} />
-              <LegendDot solid={false} label={`${noCount} ${noToken}`} />
-            </div>
-          </div>
+          {summary}
+          {dots}
         </>
       )}
     </section>

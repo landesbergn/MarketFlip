@@ -30,15 +30,21 @@ export function AboutButton() {
       <button
         type="button"
         onClick={open}
-        className="eyebrow"
-        style={{
-          background: "transparent",
-          border: 0,
-          padding: 0,
-          cursor: "pointer",
-        }}
+        aria-label="About"
+        className="mf-about"
       >
-        About
+        <span className="mf-about__label">About</span>
+        <svg
+          aria-hidden
+          className="mf-about__icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <circle cx="12" cy="12" r="10.5" strokeWidth="1.4" />
+          <circle cx="12" cy="7.6" r="1.2" fill="currentColor" stroke="none" />
+          <path d="M12 10.8 V17" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
       </button>
       <dialog
         ref={dialogRef}

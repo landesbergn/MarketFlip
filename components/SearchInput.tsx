@@ -79,9 +79,9 @@ export function SearchInput() {
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder="Search markets, categories, candidates…"
+          placeholder="Search markets, categories…"
           aria-label="Search markets"
-          className="flex-1 border-0 outline-none bg-transparent text-[20px] text-[var(--ink)]"
+          className="flex-1 min-w-0 border-0 outline-none bg-transparent text-[17px] sm:text-[20px] text-[var(--ink)]"
           style={{ padding: 0 }}
         />
         {q && (

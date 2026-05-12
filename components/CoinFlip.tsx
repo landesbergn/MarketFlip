@@ -1,40 +1,62 @@
 "use client";
 
-import { useState } from "react";
-import { flip } from "@/lib/flip";
 import {
-  displayLabel,
-  isLiteralYesNo,
-  matchupStatement,
-  questionToStatement,
-  verdictCopy,
-  verdictFor,
-} from "@/lib/fmt";
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import { flip } from "@/lib/flip";
+import { displayLabel, verdictCopy, verdictFor } from "@/lib/fmt";
 import type { FlipOutcome } from "@/lib/types";
 
 export type CoinFlipProps = {
   slug: string;
-  question: string;
   yesProbability: number;
   outcomeYesLabel: string;
   outcomeNoLabel: string;
   /** Total flip animation duration. 0 means instant (used in tests). */
   flipDurationMs?: number;
   onFlipComplete?: (outcome: FlipOutcome) => void;
+  /**
+   * Hide the built-in idle CTA + "drawing…" label. Use when the parent
+   * renders its own flip controls (e.g. the mobile sticky bottom bar).
+   */
+  hideButton?: boolean;
+  /** Hide the built-in landed verdict block. Use when the parent renders
+   *  the verdict copy itself (mobile: in-place where the reading sentence was). */
+  hideVerdict?: boolean;
+  /** Coin size in px. Lets the mobile layout shrink the disc. */
+  coinScale?: number;
+  /** Notifies parent of phase transitions: idle → flipping → landed. */
+  onPhaseChange?: (phase: Phase) => void;
 };
 
 type Phase = "idle" | "flipping" | "landed";
 
+export type CoinFlipHandle = {
+  /** Trigger a flip from outside (e.g. mobile sticky bottom bar). */
+  flip: () => void;
+};
+
 const FLIP_TURNS = 8; // even number of half-turns — same face returns to camera
 
-export function CoinFlip(props: CoinFlipProps) {
+export const CoinFlip = forwardRef<CoinFlipHandle, CoinFlipProps>(function CoinFlip(
+  props,
+  ref
+) {
   const {
-    question,
     yesProbability,
     outcomeYesLabel,
     outcomeNoLabel,
     flipDurationMs = 1500,
     onFlipComplete,
+    hideButton = false,
+    hideVerdict = false,
+    coinScale,
+    onPhaseChange,
   } = props;
 
   const [phase, setPhase] = useState<Phase>("idle");
@@ -45,16 +67,24 @@ export function CoinFlip(props: CoinFlipProps) {
   const yesPct = Math.round(yesProbability * 100);
   const noPct = 100 - yesPct;
 
-  const handleFlip = () => {
-    if (phase === "flipping") return;
-    const outcome = flip(yesProbability);
-    const previousFace: FlipOutcome = result ?? "YES";
-    const sameFace = previousFace === outcome;
-    const nextRotation =
-      rotation + FLIP_TURNS * 180 + (sameFace ? 0 : 180);
+  // Keep latest phase reachable inside the imperative `flip()` handle so
+  // the parent's ref callback never sees a stale closure.
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
 
-    setResult(outcome);
-    setRotation(nextRotation);
+  useEffect(() => {
+    onPhaseChange?.(phase);
+  }, [phase, onPhaseChange]);
+
+  const handleFlip = useCallback(() => {
+    if (phaseRef.current === "flipping") return;
+    const outcome = flip(yesProbability);
+    setResult((prev) => {
+      const previousFace: FlipOutcome = prev ?? "YES";
+      const sameFace = previousFace === outcome;
+      setRotation((r) => r + FLIP_TURNS * 180 + (sameFace ? 0 : 180));
+      return outcome;
+    });
     setFlipCount((c) => c + 1);
 
     if (flipDurationMs <= 0) {
@@ -67,10 +97,30 @@ export function CoinFlip(props: CoinFlipProps) {
       setPhase("landed");
       onFlipComplete?.(outcome);
     }, flipDurationMs);
-  };
+  }, [yesProbability, flipDurationMs, onFlipComplete]);
 
+  useImperativeHandle(ref, () => ({ flip: handleFlip }), [handleFlip]);
+
+  const stageStyle: React.CSSProperties | undefined =
+    coinScale != null
+      ? ({
+          width: coinScale,
+          height: Math.round(coinScale * 1.14),
+          // Toss arc scales with the coin so the animation still feels right.
+          "--toss-peak": `${Math.round(coinScale * 0.55)}px`,
+          "--toss-mid": `${Math.round(coinScale * 0.85)}px`,
+          "--toss-overshoot": `${Math.round(coinScale * 0.1)}px`,
+        } as React.CSSProperties)
+      : undefined;
+
+  const faceFontSize =
+    coinScale != null ? Math.round(coinScale * 0.4) : undefined;
+
+  const bothHidden = hideButton && hideVerdict;
   return (
-    <section className="flex flex-col items-center gap-6 text-center">
+    <section
+      className={`flex flex-col items-center text-center ${bothHidden ? "gap-1" : "gap-6"}`}
+    >
       <button
         type="button"
         onClick={handleFlip}
@@ -79,7 +129,7 @@ export function CoinFlip(props: CoinFlipProps) {
         className="bg-transparent border-0 p-0 disabled:cursor-not-allowed"
         style={{ cursor: phase === "flipping" ? "default" : "pointer" }}
       >
-        <div className="coin-stage">
+        <div className="coin-stage" style={stageStyle}>
           <div className="coin-shadow" data-state={phase} />
           <div
             className="coin-arc"
@@ -91,14 +141,20 @@ export function CoinFlip(props: CoinFlipProps) {
               data-state={phase}
               style={{ transform: `rotateX(${rotation}deg)` }}
             >
-              <div className="coin-face coin-face--yes">
+              <div
+                className="coin-face coin-face--yes"
+                style={faceFontSize ? { fontSize: faceFontSize } : undefined}
+              >
                 {phase === "landed" && result === "YES"
                   ? "YES"
                   : phase === "idle"
                   ? "?"
                   : ""}
               </div>
-              <div className="coin-face coin-face--no">
+              <div
+                className="coin-face coin-face--no"
+                style={faceFontSize ? { fontSize: faceFontSize } : undefined}
+              >
                 {phase === "landed" && result === "NO" ? "NO" : ""}
               </div>
             </div>
@@ -109,8 +165,11 @@ export function CoinFlip(props: CoinFlipProps) {
       <div
         className="w-full flex flex-col items-center"
         aria-label={`Implied odds: ${outcomeYesLabel} ${yesPct}%, ${outcomeNoLabel} ${noPct}%`}
+        // When the parent owns both the CTA and the verdict (mobile), the
+        // implied-odds region is announce-only and stays out of the flow.
+        style={bothHidden ? { position: "absolute", width: 0, height: 0, overflow: "hidden", clip: "rect(0 0 0 0)" } : undefined}
       >
-        {phase === "idle" && (
+        {!hideButton && phase === "idle" && (
           <>
             <button onClick={handleFlip} className="btn-primary">
               Flip the coin
@@ -121,14 +180,13 @@ export function CoinFlip(props: CoinFlipProps) {
           </>
         )}
 
-        {phase === "flipping" && (
+        {!hideButton && phase === "flipping" && (
           <p className="text-2xl italic text-[var(--ink-faint)]">drawing&hellip;</p>
         )}
 
-        {phase === "landed" && result && (
+        {!hideVerdict && phase === "landed" && result && (
           <Result
             result={result}
-            question={question}
             yesPct={yesPct}
             outcomeYesLabel={outcomeYesLabel}
             outcomeNoLabel={outcomeNoLabel}
@@ -138,18 +196,16 @@ export function CoinFlip(props: CoinFlipProps) {
       </div>
     </section>
   );
-}
+});
 
 function Result({
   result,
-  question,
   yesPct,
   outcomeYesLabel,
   outcomeNoLabel,
   onAgain,
 }: {
   result: FlipOutcome;
-  question: string;
   yesPct: number;
   outcomeYesLabel: string;
   outcomeNoLabel: string;
@@ -157,26 +213,9 @@ function Result({
 }) {
   const noPct = 100 - yesPct;
   const landedOdds = result === "YES" ? yesPct : noPct;
-  const literal = isLiteralYesNo(outcomeYesLabel, outcomeNoLabel);
   const landedLabel = displayLabel(result, outcomeYesLabel, outcomeNoLabel);
-  const winnerLabel =
-    result === "YES" ? outcomeYesLabel : outcomeNoLabel;
-  const loserLabel =
-    result === "YES" ? outcomeNoLabel : outcomeYesLabel;
-  const statement = literal
-    ? questionToStatement(question)
-    : matchupStatement(winnerLabel, loserLabel);
-
   const verdict = verdictFor(result, yesPct / 100);
   const verdictMsg = verdictCopy(verdict, landedLabel.toUpperCase(), landedOdds);
-  // `statement`, `literal`, `winnerLabel`, `loserLabel` are intentionally
-  // unused here — the strikethrough restating-the-market line was removed
-  // in favor of just the verdict + contextual sentence. They remain in
-  // scope above so callers can pass them through unchanged if reintroduced.
-  void statement;
-  void literal;
-  void winnerLabel;
-  void loserLabel;
 
   return (
     <div className="flex flex-col items-center text-center">
