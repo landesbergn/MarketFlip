@@ -499,23 +499,13 @@ dialog.about-dialog::backdrop {
   display: none;
 }
 .mf-about__icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid var(--ink);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-sans);
-  font-style: italic;
-  font-size: 15px;
-  line-height: 1;
-  transition: background 120ms ease, color 120ms ease;
+  width: 26px;
+  height: 26px;
+  display: block;
+  color: var(--ink);
+  transition: color 120ms ease, opacity 120ms ease;
 }
-.mf-about:hover .mf-about__icon {
-  background: var(--ink);
-  color: var(--paper);
-}
+.mf-about:hover .mf-about__icon { opacity: 0.7; }
 @media (min-width: 640px) {
   .mf-about { padding: 0; }
   .mf-about__icon { display: none; }

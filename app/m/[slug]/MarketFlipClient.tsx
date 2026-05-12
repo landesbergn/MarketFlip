@@ -240,15 +240,23 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
           style={{
             lineHeight: 1.06,
             maxWidth: 760,
-            // Only YES "answers" the question — strike through to show the
-            // market resolved in its favor. A NO outcome leaves the
-            // question intact (the proposition didn't happen).
-            textDecoration: landed && lastFlip === "YES" ? "line-through" : "none",
+            // Strike the question only when the market is a literal Yes/No
+            // proposition AND the flip resolved YES. Matchup-style markets
+            // (e.g. "Pistons vs. Cavaliers") have non-literal labels — a
+            // YES flip there picks a side rather than "answering" the
+            // proposition, so a strikethrough conflicts with the framing.
+            textDecoration:
+              landed && literal && lastFlip === "YES" ? "line-through" : "none",
             textDecorationColor:
-              landed && lastFlip === "YES" ? "rgba(10,10,10,0.4)" : undefined,
+              landed && literal && lastFlip === "YES"
+                ? "rgba(10,10,10,0.4)"
+                : undefined,
             textDecorationThickness:
-              landed && lastFlip === "YES" ? "1.2px" : undefined,
-            color: landed && lastFlip === "YES" ? "var(--ink-faint)" : "var(--ink)",
+              landed && literal && lastFlip === "YES" ? "1.2px" : undefined,
+            color:
+              landed && literal && lastFlip === "YES"
+                ? "var(--ink-faint)"
+                : "var(--ink)",
             transition: "color 360ms ease",
           }}
         >
@@ -430,6 +438,7 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
           yesProbability={yesProbability}
           yesLabel={yes?.label}
           noLabel={no?.label}
+          alwaysOpen
         />
       </section>
 
