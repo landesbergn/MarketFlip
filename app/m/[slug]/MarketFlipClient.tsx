@@ -41,7 +41,6 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [historyKey, setHistoryKey] = useState(0);
   const [running, setRunning] = useState(false);
-  const [futuresOpen, setFuturesOpen] = useState(false);
   const runningRef = useRef(false);
   const coinRef = useRef<CoinFlipHandle>(null);
 
@@ -234,7 +233,7 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
         }}
       />
 
-      {/* ── Header: meta + question ────────────────────────────── */}
+      {/* ── Header: meta + question + resolution criteria ──────── */}
       <section className="pt-5 sm:pt-10 pb-3 sm:pb-6">
         <p className="eyebrow">{metaParts.join(" · ") || "Live market"}</p>
         <h1
@@ -256,87 +255,39 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
         >
           {displayQuestion}
         </h1>
-        {/* Description: visible on desktop here; on mobile we render it
-            below the flip flow so the gauge + coin own the fold. */}
-        <div className="hidden lg:block">
-          <MarketDescription text={market.description} />
-        </div>
+        <MarketDescription text={market.description} />
       </section>
 
       <hr className="border-0 border-t border-[var(--rule)] m-0" />
 
-      {/* ── Mobile: reading-or-verdict + gauge ─────────────────── */}
+      {/* ── Mobile: reading sentence + gauge (always above the coin) ─ */}
       <section className="lg:hidden pt-4 pb-2">
-        {!landed ? (
-          <>
-            <p
-              className="text-[19px] italic leading-snug m-0"
-              style={{ color: "var(--ink)", letterSpacing: "-0.005em" }}
-            >
-              The market sees{" "}
-              <span className="not-italic" style={{ color: "var(--accent)" }}>
-                {yesToken}
-              </span>{" "}
-              in{" "}
-              <span className="not-italic" style={{ color: "var(--accent)" }}>
-                {yesPct}
-              </span>{" "}
-              of{" "}
-              <span className="not-italic" style={{ color: "var(--accent)" }}>
-                100
-              </span>{" "}
-              futures.
-            </p>
-            <div className="mt-4">
-              <GaugeBar
-                yesProb={yesProbability}
-                yesLabel={yesToken}
-                noLabel={noToken}
-              />
-            </div>
-          </>
-        ) : (
-          <div>
-            <p className="eyebrow" style={{ marginBottom: 6 }}>
-              The coin landed on
-            </p>
-            <p
-              className="display"
-              style={{
-                fontStyle: "italic",
-                fontSize: 60,
-                lineHeight: 0.95,
-                letterSpacing: "-0.035em",
-                color: lastFlip === "YES" ? "var(--accent)" : "var(--ink)",
-                margin: 0,
-              }}
-            >
-              {landedLabel}.
-            </p>
-            <p
-              className="figure"
-              style={{
-                marginTop: 6,
-                fontSize: 11,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: verdictAccent,
-              }}
-            >
-              {verdictKind} ·{" "}
-              {(lastFlip === "YES" ? yesLabelText : noLabelText).toLowerCase()}{" "}
-              priced at {landedOdds}%
-            </p>
-            <div className="mt-4">
-              <GaugeBar
-                yesProb={yesProbability}
-                yesLabel={yesToken}
-                noLabel={noToken}
-                landed={lastFlip}
-              />
-            </div>
-          </div>
-        )}
+        <p
+          className="text-[19px] italic leading-snug m-0"
+          style={{ color: "var(--ink)", letterSpacing: "-0.005em" }}
+        >
+          The market sees{" "}
+          <span className="not-italic" style={{ color: "var(--accent)" }}>
+            {yesToken}
+          </span>{" "}
+          in{" "}
+          <span className="not-italic" style={{ color: "var(--accent)" }}>
+            {yesPct}
+          </span>{" "}
+          of{" "}
+          <span className="not-italic" style={{ color: "var(--accent)" }}>
+            100
+          </span>{" "}
+          futures.
+        </p>
+        <div className="mt-4">
+          <GaugeBar
+            yesProb={yesProbability}
+            yesLabel={yesToken}
+            noLabel={noToken}
+            landed={landed ? lastFlip : null}
+          />
+        </div>
       </section>
 
       {/* ── Coin + desktop side panel ──────────────────────────── */}
@@ -448,41 +399,51 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
         </div>
       </section>
 
-      {/* ── Mobile-only: "See 100 futures" expandable + history ─ */}
+      {/* ── Mobile: verdict block below the coin (only when landed) ─ */}
+      {landed && (
+        <section className="lg:hidden pt-2 pb-4">
+          <p className="eyebrow" style={{ marginBottom: 6 }}>
+            The coin landed on
+          </p>
+          <p
+            className="display"
+            style={{
+              fontStyle: "italic",
+              fontSize: 60,
+              lineHeight: 0.95,
+              letterSpacing: "-0.035em",
+              color: lastFlip === "YES" ? "var(--accent)" : "var(--ink)",
+              margin: 0,
+            }}
+          >
+            {landedLabel}.
+          </p>
+          <p
+            className="figure"
+            style={{
+              marginTop: 6,
+              fontSize: 11,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: verdictAccent,
+            }}
+          >
+            {verdictKind} ·{" "}
+            {(lastFlip === "YES" ? yesLabelText : noLabelText).toLowerCase()}{" "}
+            priced at {landedOdds}%
+          </p>
+        </section>
+      )}
+
+      {/* ── Mobile: personal flip history ──────────────────────── */}
       <section className="lg:hidden pb-6">
-        <button
-          onClick={() => setFuturesOpen((o) => !o)}
-          className={`mf-disclosure${futuresOpen ? " mf-disclosure--open" : ""}`}
-          aria-expanded={futuresOpen}
-        >
-          <span>
-            {futuresOpen ? "− See the 100 futures" : "+ See the 100 futures"}
-          </span>
-          <span style={{ color: "var(--accent)" }}>{yesPct} in</span>
-        </button>
-        {futuresOpen && (
-          <div className="pt-3 pb-2">
-            <DotGrid yesProb={yesProbability} cols={20} />
-            <div className="flex gap-6 mt-4">
-              <LegendDot solid label={`${yesPct} ${yesLabelText}`} />
-              <LegendDot solid={false} label={`${noPct} ${noLabelText}`} />
-            </div>
-          </div>
-        )}
-
-        <div className="mt-2">
-          <History
-            slug={market.slug}
-            refreshKey={historyKey}
-            yesProbability={yesProbability}
-            yesLabel={yes?.label}
-            noLabel={no?.label}
-          />
-        </div>
-
-        <div className="mt-6">
-          <MarketDescription text={market.description} />
-        </div>
+        <History
+          slug={market.slug}
+          refreshKey={historyKey}
+          yesProbability={yesProbability}
+          yesLabel={yes?.label}
+          noLabel={no?.label}
+        />
       </section>
 
       {/* ── Mobile sticky bottom bar ───────────────────────────── */}
