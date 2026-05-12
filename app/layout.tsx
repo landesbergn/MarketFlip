@@ -15,10 +15,37 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketflip.xyz";
+const SITE_TITLE = "MarketFlip — Flip a market";
+const SITE_DESCRIPTION =
+  "Each market is a coin weighted to its live odds. Pull one for a flip, or a thousand.";
+
 export const metadata: Metadata = {
-  title: "MarketFlip — Flip a market",
-  description:
-    "Each market is a coin weighted to its live odds. Pull one for a flip, or a thousand.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    // Per-page titles ("Will Bitcoin hit $150k?") get suffixed with the
+    // brand so iMessage / share previews still read as MarketFlip.
+    template: "%s · MarketFlip",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: "MarketFlip",
+  openGraph: {
+    type: "website",
+    siteName: "MarketFlip",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    // The branded image lives at app/opengraph-image.tsx — Next.js wires
+    // it into the metadata automatically. Per-market routes can override
+    // by colocating their own opengraph-image file.
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
