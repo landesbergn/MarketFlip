@@ -51,3 +51,14 @@ playwright/.cache/
 
 # Claude Code working files
 .claude/
+
+# Agent-facing instruction files (kept locally, not in the public repo)
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+
+# Internal planning + design docs (per-session AI artifacts)
+docs/
+
+# Throwaway scripts used to drive Playwright from the workspace
+screenshot-debug.*

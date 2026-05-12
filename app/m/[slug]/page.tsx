@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getMarketBySlug, getEventBySlug } from "@/lib/polymarket";
 import { CandidateList } from "@/components/CandidateList";
@@ -5,11 +6,64 @@ import { Nameplate } from "@/components/Nameplate";
 import { MarketDescription } from "@/components/MarketDescription";
 import { MarketFlipClient } from "./MarketFlipClient";
 import type { FlippableMarket } from "@/lib/types";
-import { fmtResolveDate } from "@/lib/fmt";
+import { fmtResolveDate, reframeQuestion } from "@/lib/fmt";
 
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const market = await getMarketBySlug(slug, { cache: "no-store" }).catch(
+    () => null
+  );
+  const question = market
+    ? reframeQuestion(
+        market.question,
+        market.outcomes[0]?.label,
+        market.outcomes[1]?.label
+      )
+    : null;
+  // Reference the sitewide opengraph-image. Overriding openGraph in a
+  // route disables Next.js's file-based image inheritance, so we point
+  // at the same generated URL explicitly.
+  const sharedImage = "/opengraph-image";
+  if (!question) {
+    const event = await getEventBySlug(slug, { cache: "no-store" }).catch(
+      () => null
+    );
+    if (!event) return {};
+    const eventDescription = `${event.question} — flip the market on MarketFlip. Each market is a coin weighted to its live odds.`;
+    return {
+      title: event.question,
+      description: eventDescription,
+      openGraph: {
+        title: event.question,
+        description: eventDescription,
+        images: [sharedImage],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: event.question,
+        description: eventDescription,
+        images: [sharedImage],
+      },
+    };
+  }
+  const yesPct = Math.round((market!.outcomes[0]?.probability ?? 0) * 100);
+  const description = `The market sees yes in ${yesPct} of 100 futures. Flip the coin on MarketFlip.`;
+  return {
+    title: question,
+    description,
+    openGraph: { title: question, description, images: [sharedImage] },
+    twitter: {
+      card: "summary_large_image",
+      title: question,
+      description,
+      images: [sharedImage],
+    },
+  };
+}
 
 export default async function MarketPage({ params }: PageProps) {
   const { slug } = await params;
