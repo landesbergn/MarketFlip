@@ -80,7 +80,6 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
     landed && verdictKind && landedOdds !== null
       ? verdictCopy(verdictKind, landedLabel, landedOdds)
       : "";
-  const verdictAccent = verdictKind === "SURPRISE" ? "var(--accent)" : "var(--ink)";
 
   const handleFlipComplete = (o: FlipOutcome) => {
     setLastFlip(o);
@@ -285,7 +284,6 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
             yesProb={yesProbability}
             yesLabel={yesToken}
             noLabel={noToken}
-            landed={landed ? lastFlip : null}
           />
         </div>
       </section>
@@ -399,38 +397,27 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
         </div>
       </section>
 
-      {/* ── Mobile: verdict block below the coin (only when landed) ─ */}
+      {/* ── Mobile: verdict below the coin (mirrors desktop copy) ─ */}
       {landed && (
-        <section className="lg:hidden pt-2 pb-4">
-          <p className="eyebrow" style={{ marginBottom: 6 }}>
-            The coin landed on
-          </p>
+        <section className="lg:hidden pt-3 pb-4 flex flex-col items-center text-center">
           <p
+            role="status"
             className="display"
             style={{
+              fontSize: 38,
+              color: verdictKind === "SURPRISE" ? "var(--accent)" : "var(--ink)",
+              lineHeight: 1,
+              letterSpacing: "-0.025em",
               fontStyle: "italic",
-              fontSize: 60,
-              lineHeight: 0.95,
-              letterSpacing: "-0.035em",
-              color: lastFlip === "YES" ? "var(--accent)" : "var(--ink)",
-              margin: 0,
             }}
           >
-            {landedLabel}.
+            {verdictKind}.
           </p>
           <p
-            className="figure"
-            style={{
-              marginTop: 6,
-              fontSize: 11,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              color: verdictAccent,
-            }}
+            className="mt-3 text-[16px] leading-relaxed max-w-md"
+            style={{ color: "var(--ink-soft)" }}
           >
-            {verdictKind} ·{" "}
-            {(lastFlip === "YES" ? yesLabelText : noLabelText).toLowerCase()}{" "}
-            priced at {landedOdds}%
+            {verdictMsg}
           </p>
         </section>
       )}
