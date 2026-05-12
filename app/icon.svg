@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -15 30 30">
+  <defs>
+    <radialGradient id="g" cx="32%" cy="26%" r="82%">
+      <stop offset="0%" stop-color="#fae28a"/>
+      <stop offset="45%" stop-color="#d4a017"/>
+      <stop offset="100%" stop-color="#7a5605"/>
+    </radialGradient>
+    <radialGradient id="h" cx="28%" cy="22%" r="55%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle r="13" fill="url(#g)"/>
+  <g stroke="#4a3202" stroke-width="0.65" stroke-linecap="butt">
+    <line x1="0" y1="-13" x2="0" y2="-11.6"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(22.5)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(45)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(67.5)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(90)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(112.5)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(135)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(157.5)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(180)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(202.5)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(225)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(247.5)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(270)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(292.5)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(315)"/>
+    <line x1="0" y1="-13" x2="0" y2="-11.6" transform="rotate(337.5)"/>
+  </g>
+  <circle r="10.4" fill="none" stroke="#6e4608" stroke-opacity="0.55" stroke-width="0.45"/>
+  <circle r="13" fill="url(#h)"/>
+</svg>
