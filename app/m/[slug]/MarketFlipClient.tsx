@@ -237,27 +237,7 @@ export function MarketFlipClient({ market }: { market: FlippableMarket }) {
         <p className="eyebrow">{metaParts.join(" · ") || "Live market"}</p>
         <h1
           className="display mt-2.5 sm:mt-3.5 text-[28px] sm:text-[40px] md:text-[48px]"
-          style={{
-            lineHeight: 1.06,
-            // Strike the question only when the market is a literal Yes/No
-            // proposition AND the flip resolved YES. Matchup-style markets
-            // (e.g. "Pistons vs. Cavaliers") have non-literal labels — a
-            // YES flip there picks a side rather than "answering" the
-            // proposition, so a strikethrough conflicts with the framing.
-            textDecoration:
-              landed && literal && lastFlip === "YES" ? "line-through" : "none",
-            textDecorationColor:
-              landed && literal && lastFlip === "YES"
-                ? "rgba(10,10,10,0.4)"
-                : undefined,
-            textDecorationThickness:
-              landed && literal && lastFlip === "YES" ? "1.2px" : undefined,
-            color:
-              landed && literal && lastFlip === "YES"
-                ? "var(--ink-faint)"
-                : "var(--ink)",
-            transition: "color 360ms ease",
-          }}
+          style={{ lineHeight: 1.06 }}
         >
           {displayQuestion}
         </h1>
