@@ -30,15 +30,11 @@ export function AboutButton() {
       <button
         type="button"
         onClick={open}
-        className="eyebrow"
-        style={{
-          background: "transparent",
-          border: 0,
-          padding: 0,
-          cursor: "pointer",
-        }}
+        aria-label="About"
+        className="mf-about"
       >
-        About
+        <span className="mf-about__label">About</span>
+        <span aria-hidden className="mf-about__icon">i</span>
       </button>
       <dialog
         ref={dialogRef}

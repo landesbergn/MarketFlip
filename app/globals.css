@@ -181,7 +181,11 @@ body {
   height: 190px;
   position: absolute;
   top: 0;
-  left: 0;
+  /* Center the 190px-wide arc horizontally inside the stage. The toss
+     animation owns `transform`, so use a negative left-margin (not
+     translateX) so the animation's transforms aren't overwritten. */
+  left: 50%;
+  margin-left: -95px;
   transform-origin: center bottom;
 }
 /* Two identical animations alternated per flip — forcing an animation-name
@@ -405,13 +409,218 @@ dialog.about-dialog::backdrop {
   .flip-dots { gap: 3px; }
 }
 
-/* Candidate ledger row — name + bar + pct, shrinks the name column on
-   mobile so the bar still gets meaningful space. */
+/* Candidate ledger row — on mobile, name + pct ride row 1 and a full-width
+   bar drops to row 2 so candidates can be visually compared at a glance.
+   On desktop, the row collapses back into a single line (name · bar · pct). */
 .candidate-row {
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr) auto;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "name pct"
+    "bar bar";
+  column-gap: 16px;
+  row-gap: 10px;
+  align-items: baseline;
 }
+.candidate-name { grid-area: name; min-width: 0; }
+.candidate-pct  { grid-area: pct; }
+.candidate-bar  { grid-area: bar; }
+
 @media (min-width: 640px) {
   .candidate-row {
     grid-template-columns: 220px 1fr 80px;
+    grid-template-areas: "name bar pct";
+    column-gap: 24px;
+    row-gap: 0;
+    align-items: center;
   }
 }
+
+/* ====================================================================
+   Nameplate — sticky, compact on mobile, full-height on desktop
+   ==================================================================== */
+
+.mf-nameplate {
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: saturate(140%) blur(8px);
+  -webkit-backdrop-filter: saturate(140%) blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+
+/* The sticky header sits flush with the viewport top. Mobile keeps a tight
+   ~52px box (compact wordmark + chrome). Desktop restores the original
+   nameplate breathing room so the coin + wordmark aren't squeezed. */
+.mf-nameplate__inner {
+  min-height: 52px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+@media (min-width: 640px) {
+  .mf-nameplate__inner {
+    min-height: 64px;
+    padding-top: 18px;
+    padding-bottom: 14px;
+  }
+}
+
+/* The header coin's size is owned by HeaderCoin's `size` prop (defaults to
+   30). We keep the wrapper transparent so nothing alters its aspect ratio
+   or clips the rotating disc. */
+.mf-headercoin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  line-height: 0;
+}
+
+/* Back link: icon-only with a 44px tap zone on mobile, full label on
+   desktop. */
+.mf-back {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  min-width: 44px;
+  min-height: 44px;
+  margin-left: -10px;
+}
+.mf-back__arrow {
+  font-size: 18px;
+  line-height: 1;
+}
+.mf-back__label {
+  display: none;
+}
+@media (min-width: 640px) {
+  .mf-back {
+    min-width: 0;
+    margin-left: 0;
+  }
+  .mf-back__arrow {
+    display: none;
+  }
+  .mf-back__label {
+    display: inline;
+  }
+}
+
+/* About: 30×30 circle "i" on mobile (44px tap zone via padding),
+   "About" eyebrow on desktop. */
+.mf-about {
+  background: transparent;
+  border: 0;
+  padding: 7px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+}
+.mf-about__label {
+  display: none;
+}
+.mf-about__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1;
+  transition: background 120ms ease, color 120ms ease;
+}
+.mf-about:hover .mf-about__icon {
+  background: var(--ink);
+  color: var(--paper);
+}
+@media (min-width: 640px) {
+  .mf-about { padding: 0; }
+  .mf-about__icon { display: none; }
+  .mf-about__label {
+    display: inline;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .mf-about:hover .mf-about__label { color: var(--ink); }
+}
+
+/* ====================================================================
+   Mobile bottom action bar — fixed to window viewport, safe-area-aware.
+   Tucked behind the lg:hidden gate from the consumer; styling here keeps
+   the safe-area math + shadow consistent across pages.
+   ==================================================================== */
+
+.mf-bottombar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--paper) 96%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-top: 1px solid var(--rule);
+  padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -16px 24px -16px rgba(10, 10, 10, 0.08);
+}
+
+/* Mobile flip CTA — full width inside the sticky bar. */
+.mf-flip-btn {
+  min-height: 52px;
+  padding: 14px 22px;
+}
+
+/* Compact icon-labeled action used in the post-flip bar trio. */
+.mf-icon-action {
+  background: transparent;
+  border: 1px solid var(--ink);
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  transition: background 120ms ease, color 120ms ease;
+}
+.mf-icon-action:hover { background: var(--ink); color: var(--paper); }
+.mf-icon-action:disabled { opacity: 0.45; cursor: not-allowed; }
+.mf-icon-action__label {
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* Disclosure button used by "See the 100 futures" — full-width, with
+   a 44px tap target and accent count on the right. */
+.mf-disclosure {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 12px 0;
+  margin-top: 4px;
+  border-top: 1px solid var(--rule);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  min-height: 44px;
+}
+.mf-disclosure:hover { color: var(--ink); }
