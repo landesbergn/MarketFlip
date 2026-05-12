@@ -114,12 +114,10 @@ export function History({
 }
 
 function FlipDots({ entries }: { entries: HistoryEntry[] }) {
-  // Cap the visualization at the most recent 100 flips so the column
-  // mirrors the 100-dot implied grid above, regardless of how many
-  // total flips the user has accumulated.
-  const window = entries.slice(0, 100);
-  // Chronological within the window: oldest → top-left, newest → bottom-right.
-  const ordered = [...window].reverse();
+  // Chronological: oldest → top-left, newest → bottom-right.
+  // entries arrive newest-first; reverse so the grid grows by appending
+  // new dots at the end instead of shifting everything.
+  const ordered = [...entries].reverse();
   const size = 18;
   const gap = 3;
   return (
@@ -131,11 +129,15 @@ function FlipDots({ entries }: { entries: HistoryEntry[] }) {
         maxWidth: "100%",
       }}
     >
-      {ordered.map((e, i) => {
+      {ordered.map((e) => {
         const filled = e.flippedTo === "YES";
+        // Stable key (timestamp only — Run 100 already uses unique
+        // offsets per entry, and a manual flip uses Date.now() once).
+        // Index-based keys would change as the array length grows,
+        // causing React to unmount/remount existing dots.
         return (
           <div
-            key={`${e.timestamp}-${i}`}
+            key={e.timestamp}
             title={`${e.flippedTo} · ${new Date(e.timestamp).toLocaleString()}`}
             style={{
               width: size,
