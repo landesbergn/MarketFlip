@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HeaderCoin } from "./HeaderCoin";
+import { AboutButton } from "./AboutButton";
 
 type Props = {
   /** Show a "back" link on the right (used on non-home pages). */
@@ -37,11 +38,14 @@ export function Nameplate({
             Market<span style={{ fontStyle: "italic", color: "var(--accent)" }}>Flip</span>
           </span>
         </Link>
-        {showBack && (
-          <Link href={backHref} className="eyebrow inline-flex items-center">
-            {backLabel}
-          </Link>
-        )}
+        <div className="flex items-center gap-5">
+          {showBack && (
+            <Link href={backHref} className="eyebrow inline-flex items-center">
+              {backLabel}
+            </Link>
+          )}
+          <AboutButton />
+        </div>
       </div>
     </header>
   );
