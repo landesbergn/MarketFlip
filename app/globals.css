@@ -46,6 +46,13 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Reserve the scrollbar gutter on every page so navigating between a
+     long page (home/trending) and a short one (a market) doesn't shift
+     centered content horizontally. */
+  scrollbar-gutter: stable;
+}
+
 html, body {
   background: var(--paper);
   color: var(--ink);
