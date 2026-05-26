@@ -10,7 +10,21 @@ import { fmtResolveDate, reframeQuestion } from "@/lib/fmt";
 
 export const dynamic = "force-dynamic";
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketflip.xyz";
+
 type PageProps = { params: Promise<{ slug: string }> };
+
+// Inline JSON-LD payload — invisible to readers but parsed by Google
+// and LLM crawlers. Kept inline so each render uses fresh probabilities.
+function JsonLd({ data }: { data: unknown }) {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+    />
+  );
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -28,18 +42,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // route disables Next.js's file-based image inheritance, so we point
   // at the same generated URL explicitly.
   const sharedImage = "/opengraph-image";
+  const canonicalPath = `/m/${slug}`;
   if (!question) {
     const event = await getEventBySlug(slug, { cache: "no-store" }).catch(
       () => null
     );
     if (!event) return {};
-    const eventDescription = `${event.question} — flip the market on MarketFlip. Each market is a coin weighted to its live odds.`;
+    const eventDescription = `${event.question} — flip this Polymarket prediction market on MarketFlip. Each market is a coin weighted to its live implied odds.`;
     return {
       title: event.question,
       description: eventDescription,
+      alternates: { canonical: canonicalPath },
       openGraph: {
         title: event.question,
         description: eventDescription,
+        url: canonicalPath,
         images: [sharedImage],
       },
       twitter: {
@@ -51,11 +68,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
   const yesPct = Math.round((market!.outcomes[0]?.probability ?? 0) * 100);
-  const description = `The market sees yes in ${yesPct} of 100 futures. Flip the coin on MarketFlip.`;
+  const description = `Polymarket implies ${yesPct}% — the market sees yes in ${yesPct} of 100 futures. Flip the coin on MarketFlip.`;
   return {
     title: question,
     description,
-    openGraph: { title: question, description, images: [sharedImage] },
+    alternates: { canonical: canonicalPath },
+    openGraph: {
+      title: question,
+      description,
+      url: canonicalPath,
+      images: [sharedImage],
+    },
     twitter: {
       card: "summary_large_image",
       title: question,
@@ -91,8 +114,45 @@ export default async function MarketPage({ params }: PageProps) {
         fieldBack = { href: `/m/${parent.slug}`, label: "← The field" };
       }
     }
+    const question = reframeQuestion(
+      market.question,
+      market.outcomes[0]?.label,
+      market.outcomes[1]?.label
+    );
+    const yesPct = Math.round((market.outcomes[0]?.probability ?? 0) * 100);
+    const noPct = 100 - yesPct;
+    const pageUrl = `${SITE_URL}/m/${slug}`;
+    const marketJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "QAPage",
+      url: pageUrl,
+      mainEntity: {
+        "@type": "Question",
+        name: question,
+        text: market.question,
+        ...(market.description ? { description: market.description } : {}),
+        ...(market.endDate ? { dateModified: new Date().toISOString() } : {}),
+        answerCount: 2,
+        suggestedAnswer: [
+          {
+            "@type": "Answer",
+            text: `${market.outcomes[0]?.label ?? "Yes"} — implied probability ${yesPct}% on Polymarket.`,
+          },
+          {
+            "@type": "Answer",
+            text: `${market.outcomes[1]?.label ?? "No"} — implied probability ${noPct}% on Polymarket.`,
+          },
+        ],
+      },
+      isPartOf: {
+        "@type": "WebSite",
+        name: "MarketFlip",
+        url: SITE_URL,
+      },
+    };
     return (
       <>
+        <JsonLd data={marketJsonLd} />
         <Nameplate
           showBack={fieldBack !== null}
           backHref={fieldBack?.href}
@@ -110,6 +170,8 @@ export default async function MarketPage({ params }: PageProps) {
   );
 
   if (event) {
+    const eventPageUrl = `${SITE_URL}/m/${slug}`;
+
     // Single-market event: flatten directly into the binary flip UI.
     if (event.subMarkets.length === 1) {
       const sub = event.subMarkets[0];
@@ -126,8 +188,33 @@ export default async function MarketPage({ params }: PageProps) {
         volume24h: 0,
         url: event.url,
       };
+      const yesPct = Math.round(sub.yesProbability * 100);
+      const singleJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "QAPage",
+        url: eventPageUrl,
+        mainEntity: {
+          "@type": "Question",
+          name: event.question,
+          text: event.question,
+          ...(event.description ? { description: event.description } : {}),
+          answerCount: 2,
+          suggestedAnswer: [
+            {
+              "@type": "Answer",
+              text: `Yes — implied probability ${yesPct}% on Polymarket.`,
+            },
+            {
+              "@type": "Answer",
+              text: `No — implied probability ${100 - yesPct}% on Polymarket.`,
+            },
+          ],
+        },
+        isPartOf: { "@type": "WebSite", name: "MarketFlip", url: SITE_URL },
+      };
       return (
         <>
+          <JsonLd data={singleJsonLd} />
           <Nameplate />
           <main className="mx-auto max-w-[1024px] px-5 sm:px-8 lg:px-14 pb-[calc(96px+env(safe-area-inset-bottom))] lg:pb-12">
             <MarketFlipClient market={synthetic} />
@@ -136,8 +223,29 @@ export default async function MarketPage({ params }: PageProps) {
       );
     }
 
+    const fieldJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "QAPage",
+      url: eventPageUrl,
+      mainEntity: {
+        "@type": "Question",
+        name: event.question,
+        text: event.question,
+        ...(event.description ? { description: event.description } : {}),
+        answerCount: event.subMarkets.length,
+        suggestedAnswer: event.subMarkets.map((s) => ({
+          "@type": "Answer",
+          text: `${s.question} — implied probability ${Math.round(
+            s.yesProbability * 100
+          )}% on Polymarket.`,
+        })),
+      },
+      isPartOf: { "@type": "WebSite", name: "MarketFlip", url: SITE_URL },
+    };
+
     return (
       <>
+        <JsonLd data={fieldJsonLd} />
         <Nameplate />
         <main className="mx-auto max-w-[1024px] px-5 sm:px-8 lg:px-14 pb-12">
           <section className="pt-5 sm:pt-10 pb-3 sm:pb-6">

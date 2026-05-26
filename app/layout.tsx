@@ -18,8 +18,12 @@ const geistMono = Geist_Mono({
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketflip.xyz";
 const SITE_TITLE = "MarketFlip — Flip a market";
+// On-page voice is preserved verbatim in app/page.tsx. The metadata
+// description below is only used by SERP snippets and link unfurls,
+// so it can carry search keywords ("Polymarket", "prediction markets")
+// without altering anything visible on the site.
 const SITE_DESCRIPTION =
-  "Each market is a coin weighted to its live odds. Pull one for a flip, or a thousand.";
+  "Flip live Polymarket prediction markets as coins weighted to their implied probabilities. Each market is a coin weighted to its live odds — pull one for a flip, or simulate a thousand.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -31,6 +35,29 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: "MarketFlip",
+  keywords: [
+    "Polymarket",
+    "prediction markets",
+    "prediction market odds",
+    "implied probability",
+    "coin flip",
+    "weighted coin",
+    "Monte Carlo",
+    "MarketFlip",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   openGraph: {
     type: "website",
     siteName: "MarketFlip",

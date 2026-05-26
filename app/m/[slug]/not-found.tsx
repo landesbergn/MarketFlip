@@ -1,4 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "No such market",
+  description: "That slug doesn't match any active Polymarket market or event.",
+  robots: { index: false, follow: false },
+};
 
 export default function NotFound() {
   return (
