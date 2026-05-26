@@ -39,6 +39,14 @@ export default function HomePage() {
       />
       <Nameplate />
       <main className="mx-auto max-w-[1024px] px-5 sm:px-8 lg:px-14">
+        {/* Heading exists for crawlers and screen readers — sr-only keeps
+            the visual layout unchanged. Bing flagged the homepage as
+            missing an <h1>; the printed wordmark in <Nameplate> isn't
+            semantic. */}
+        <h1 className="sr-only">
+          MarketFlip — flip live Polymarket prediction markets as coins
+          weighted to their implied probabilities
+        </h1>
         {/* Tagline */}
         <section className="rise rise-1 pt-4 sm:pt-6 pb-6 sm:pb-7">
           <p className="max-w-[520px] text-[18px] leading-relaxed text-[var(--ink-soft)] italic">
