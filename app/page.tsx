@@ -6,12 +6,37 @@ import { Nameplate } from "@/components/Nameplate";
 export const metadata = {
   title: "MarketFlip — Flip a market",
   description:
-    "Each market is a coin weighted to its live odds. Pull one for a flip, or a thousand.",
+    "Flip live Polymarket prediction markets as coins weighted to their implied probabilities. Each market is a coin weighted to its live odds — pull one for a flip, or simulate a thousand.",
+  alternates: { canonical: "/" },
+};
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketflip.xyz";
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "MarketFlip",
+  alternateName: "MarketFlip — Flip a market",
+  url: SITE_URL,
+  description:
+    "Flip live Polymarket prediction-market questions as coins weighted to their implied probabilities. Pull one flip or simulate a thousand.",
+  inLanguage: "en",
+  publisher: {
+    "@type": "Organization",
+    name: "MarketFlip",
+    url: SITE_URL,
+  },
 };
 
 export default function HomePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        // JSON-LD is consumed by Google/LLM crawlers; not rendered to users.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
       <Nameplate />
       <main className="mx-auto max-w-[1024px] px-5 sm:px-8 lg:px-14">
         {/* Tagline */}
