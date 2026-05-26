@@ -11,7 +11,7 @@ export const metadata = {
 };
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketflip.xyz";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.marketflip.xyz";
 
 const websiteJsonLd = {
   "@context": "https://schema.org",

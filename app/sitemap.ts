@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getTrendingMarkets } from "@/lib/polymarket";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketflip.xyz";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.marketflip.xyz";
 
 // Re-fetch the trending list once an hour. Bot crawls are sparse; this
 // keeps Polymarket calls bounded while still surfacing fresh slugs.
