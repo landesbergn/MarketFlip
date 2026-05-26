@@ -11,7 +11,7 @@ import { fmtResolveDate, reframeQuestion } from "@/lib/fmt";
 export const dynamic = "force-dynamic";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketflip.xyz";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.marketflip.xyz";
 
 type PageProps = { params: Promise<{ slug: string }> };
 

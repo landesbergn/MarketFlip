@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketflip.xyz";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.marketflip.xyz";
 const SITE_TITLE = "MarketFlip — Flip a market";
 // On-page voice is preserved verbatim in app/page.tsx. The metadata
 // description below is only used by SERP snippets and link unfurls,
