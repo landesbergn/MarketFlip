@@ -10,21 +10,7 @@ import { fmtResolveDate, reframeQuestion } from "@/lib/fmt";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.marketflip.xyz";
-
 type PageProps = { params: Promise<{ slug: string }> };
-
-// Inline JSON-LD payload — invisible to readers but parsed by Google
-// and LLM crawlers. Kept inline so each render uses fresh probabilities.
-function JsonLd({ data }: { data: unknown }) {
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
-    />
-  );
-}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -114,45 +100,8 @@ export default async function MarketPage({ params }: PageProps) {
         fieldBack = { href: `/m/${parent.slug}`, label: "← The field" };
       }
     }
-    const question = reframeQuestion(
-      market.question,
-      market.outcomes[0]?.label,
-      market.outcomes[1]?.label
-    );
-    const yesPct = Math.round((market.outcomes[0]?.probability ?? 0) * 100);
-    const noPct = 100 - yesPct;
-    const pageUrl = `${SITE_URL}/m/${slug}`;
-    const marketJsonLd = {
-      "@context": "https://schema.org",
-      "@type": "QAPage",
-      url: pageUrl,
-      mainEntity: {
-        "@type": "Question",
-        name: question,
-        text: market.question,
-        ...(market.description ? { description: market.description } : {}),
-        ...(market.endDate ? { dateModified: new Date().toISOString() } : {}),
-        answerCount: 2,
-        suggestedAnswer: [
-          {
-            "@type": "Answer",
-            text: `${market.outcomes[0]?.label ?? "Yes"} — implied probability ${yesPct}% on Polymarket.`,
-          },
-          {
-            "@type": "Answer",
-            text: `${market.outcomes[1]?.label ?? "No"} — implied probability ${noPct}% on Polymarket.`,
-          },
-        ],
-      },
-      isPartOf: {
-        "@type": "WebSite",
-        name: "MarketFlip",
-        url: SITE_URL,
-      },
-    };
     return (
       <>
-        <JsonLd data={marketJsonLd} />
         <Nameplate
           showBack={fieldBack !== null}
           backHref={fieldBack?.href}
@@ -170,8 +119,6 @@ export default async function MarketPage({ params }: PageProps) {
   );
 
   if (event) {
-    const eventPageUrl = `${SITE_URL}/m/${slug}`;
-
     // Single-market event: flatten directly into the binary flip UI.
     if (event.subMarkets.length === 1) {
       const sub = event.subMarkets[0];
@@ -188,33 +135,8 @@ export default async function MarketPage({ params }: PageProps) {
         volume24h: 0,
         url: event.url,
       };
-      const yesPct = Math.round(sub.yesProbability * 100);
-      const singleJsonLd = {
-        "@context": "https://schema.org",
-        "@type": "QAPage",
-        url: eventPageUrl,
-        mainEntity: {
-          "@type": "Question",
-          name: event.question,
-          text: event.question,
-          ...(event.description ? { description: event.description } : {}),
-          answerCount: 2,
-          suggestedAnswer: [
-            {
-              "@type": "Answer",
-              text: `Yes — implied probability ${yesPct}% on Polymarket.`,
-            },
-            {
-              "@type": "Answer",
-              text: `No — implied probability ${100 - yesPct}% on Polymarket.`,
-            },
-          ],
-        },
-        isPartOf: { "@type": "WebSite", name: "MarketFlip", url: SITE_URL },
-      };
       return (
         <>
-          <JsonLd data={singleJsonLd} />
           <Nameplate />
           <main className="mx-auto max-w-[1024px] px-5 sm:px-8 lg:px-14 pb-[calc(96px+env(safe-area-inset-bottom))] lg:pb-12">
             <MarketFlipClient market={synthetic} />
@@ -223,29 +145,8 @@ export default async function MarketPage({ params }: PageProps) {
       );
     }
 
-    const fieldJsonLd = {
-      "@context": "https://schema.org",
-      "@type": "QAPage",
-      url: eventPageUrl,
-      mainEntity: {
-        "@type": "Question",
-        name: event.question,
-        text: event.question,
-        ...(event.description ? { description: event.description } : {}),
-        answerCount: event.subMarkets.length,
-        suggestedAnswer: event.subMarkets.map((s) => ({
-          "@type": "Answer",
-          text: `${s.question} — implied probability ${Math.round(
-            s.yesProbability * 100
-          )}% on Polymarket.`,
-        })),
-      },
-      isPartOf: { "@type": "WebSite", name: "MarketFlip", url: SITE_URL },
-    };
-
     return (
       <>
-        <JsonLd data={fieldJsonLd} />
         <Nameplate />
         <main className="mx-auto max-w-[1024px] px-5 sm:px-8 lg:px-14 pb-12">
           <section className="pt-5 sm:pt-10 pb-3 sm:pb-6">
