@@ -9,10 +9,14 @@ export function fmtResolveDate(iso: string): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
+  // Pin to UTC so server (Vercel = UTC) and client (any TZ) produce the
+  // same string. Without this, dates straddle midnight UTC and React
+  // throws a hydration text mismatch (#418) on first paint.
   return d.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "UTC",
   });
 }
 

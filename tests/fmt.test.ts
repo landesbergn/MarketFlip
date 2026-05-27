@@ -30,10 +30,10 @@ describe("fmtVol", () => {
 });
 
 describe("fmtResolveDate", () => {
-  it("formats an ISO date in US short form", () => {
-    expect(fmtResolveDate("2026-06-15T00:00:00Z")).toMatch(
-      /Jun \d{1,2}, 2026/
-    );
+  it("formats an ISO date in US short form using UTC", () => {
+    // Pinned to UTC so SSR (server, UTC) and CSR (client, any TZ) agree.
+    // The previous regex masked a hydration mismatch by accepting either day.
+    expect(fmtResolveDate("2026-06-15T00:00:00Z")).toBe("Jun 15, 2026");
   });
 
   it("returns an empty string for missing / invalid dates", () => {
